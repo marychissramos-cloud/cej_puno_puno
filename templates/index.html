@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEJ — Sistema de Consulta de Expedientes Judiciales | EJE Perú</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Tipografía Sobria, Elegante y Didáctica: Fraunces (Editorial), Outfit (Didáctica/Geométrica) y JetBrains Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@500;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* PALETA SOLICITADA: TAMARIND, BOHO, CAMEL COAT & ICONOS ITALIAN ROAST */
+      --tamarind: #381B18;
+      --tamarind-deep: #24100E;
+      --tamarind-soft: #4D2722;
+      --boho: #A46B53;
+      --boho-warm: #B87D64;
+      --boho-tint: #EFE1D8;
+      --camel-coat: #C5A07D;
+      --camel-light: #DFC7AE;
+      --camel-cream: #F6EFE7;
+      --camel-card: #FCF8F3;
+      --camel-border: #D9C4AF;
+      --italian-roast: #2A1612;
+      --texto-principal: #2A1612;
+      --texto-secundario: #634840;
+      --verde-ok: #1E5631;
+      --verde-bg: #E6F2EA;
+
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--camel-cream);
+      color: var(--texto-principal);
+      line-height: 1.58;
+      letter-spacing: 0.01em;
+      transition: filter 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* ESTADOS DE ACCESIBILIDAD WCAG 2.2 AA */
+    body.acc-high-contrast { background: #160A08 !important; color: #FAF3EB !important; }
+    body.acc-high-contrast .card, body.acc-high-contrast .modal-box, body.acc-high-contrast .eje-subtabs, body.acc-high-contrast .window-stepper {
+      background: #24100E !important; color: #FAF3EB !important; border-color: var(--camel-coat) !important;
+    }
+    body.acc-light-sensitivity { filter: brightness(0.85) sepia(0.14); }
+    body.acc-colorblind { filter: contrast(1.18) saturate(1.22); }
+    body.acc-dyslexia, body.acc-dyslexia * { font-family: 'Comic Sans MS', 'Trebuchet MS', Verdana, sans-serif !important; letter-spacing: 0.08em !important; word-spacing: 0.16em !important; line-height: 1.85 !important; }
+    body.acc-legible, body.acc-legible * { font-family: Arial, Helvetica, sans-serif !important; }
+    body.acc-left-align * { text-align: left !important; }
+    body.acc-focus-strong *:focus { outline: 3px solid var(--boho) !important; outline-offset: 3px !important; }
+    body.acc-no-motion *, body.acc-no-motion *::before, body.acc-no-motion *::after { animation: none !important; transition: none !important; }
+
+    #reading-guide-bar {
+      display: none; position: fixed; left: 0; width: 100%; height: 34px;
+      background: rgba(197, 160, 125, 0.28); border-top: 2px solid var(--tamarind); border-bottom: 2px solid var(--tamarind);
+      pointer-events: none; z-index: 9998;
+    }
+
+    .skip-link {
+      position: absolute; top: -50px; left: 12px; background: var(--tamarind); color: var(--camel-cream);
+      padding: 8px 14px; border-radius: 6px; z-index: 10000; text-decoration: none; font-weight: 700;
+    }
+    .skip-link:focus { top: 10px; }
+
+    /* ==========================================================================
+       ICONOS EN COLOR ITALIAN ROAST (#2A1612)
+       ========================================================================== */
+    .roast-icon {
+      color: var(--italian-roast);
+      stroke: var(--italian-roast);
+      flex-shrink: 0;
+    }
+    .icon-badge-camel {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--camel-coat);
+      color: var(--italian-roast);
+      border-radius: 6px;
+      padding: 4px;
+    }
+
+    /* ==========================================================================
+       BARRA SUPERIOR DE OPERABILIDAD
+       ========================================================================== */
+    .top-utility-bar {
+      background: var(--tamarind-deep);
+      color: var(--camel-cream);
+      font-size: 0.78rem;
+      padding: 8px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid rgba(197, 160, 125, 0.4);
+      position: sticky;
+      top: 0;
+      z-index: 900;
+    }
+    .utility-left { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--camel-light); letter-spacing: 0.4px; }
+    .utility-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .clock-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(197, 160, 125, 0.45);
+      padding: 4px 11px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .session-pill {
+      background: var(--camel-coat);
+      color: var(--italian-roast);
+      padding: 4px 11px;
+      border-radius: 7px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .lang-select, .util-btn {
+      background: var(--camel-coat);
+      color: var(--italian-roast);
+      border: 1px solid var(--italian-roast);
+      padding: 5px 11px;
+      border-radius: 7px;
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .util-btn:hover, .lang-select:hover { background: var(--camel-light); }
+
+    /* CABECERA INSTITUCIONAL Y BARRA DE ICONOS DE SERVICIO */
+    .inst-header {
+      background: linear-gradient(135deg, var(--tamarind) 0%, var(--tamarind-soft) 58%, var(--boho) 100%);
+      color: #FFF;
+      padding: 20px 28px 16px;
+      border-bottom: 3px solid var(--camel-coat);
+    }
+    .inst-header-top {
+      max-width: 1380px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+    }
+    .brand-group { display: flex; align-items: center; gap: 16px; }
+    .brand-emblem {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: var(--camel-coat);
+      color: var(--italian-roast); display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.28); border: 2px solid var(--italian-roast);
+    }
+    .brand-titles h1 { font-family: var(--font-display); font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; color: var(--camel-cream); }
+    .brand-titles p { font-size: 0.82rem; color: var(--camel-light); margin-top: 3px; }
+
+    .service-icons-bar {
+      max-width: 1380px; margin: 15px auto 0; padding-top: 13px;
+      border-top: 1px solid rgba(197, 160, 125, 0.35);
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    }
+    .srv-icon-btn {
+      background: var(--camel-coat);
+      border: 1px solid var(--italian-roast);
+      color: var(--italian-roast);
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.81rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .srv-icon-btn:hover { background: var(--camel-cream); transform: translateY(-1px); }
+
+    /* STEPPER DE NAVEGACIÓN ENTRE LAS 5 VENTANAS */
+    .window-stepper {
+      background: var(--camel-card);
+      border-bottom: 1px solid var(--camel-border);
+      padding: 11px 24px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .step-pill {
+      padding: 6px 15px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid var(--camel-border);
+      background: var(--camel-cream);
+      color: var(--texto-secundario);
+      cursor: pointer;
+    }
+    .step-pill.active { background: var(--tamarind); color: var(--camel-cream); border-color: var(--tamarind); }
+    .step-pill.completed { background: var(--boho-tint); color: var(--italian-roast); border-color: var(--boho); }
+
+    /* CONTENEDORES DE VENTANAS */
+    .window-section { display: none; }
+    .window-section.active { display: block; animation: fadeIn 0.28s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .container { max-width: 1380px; margin: 24px auto; padding: 0 22px; }
+
+    /* ==========================================================================
+       VENTANA 1: AVISO LEGAL Y ACADÉMICO (MODAL OBLIGATORIO)
+       ========================================================================== */
+    .legal-backdrop {
+      position: fixed; inset: 0; background: rgba(36, 16, 14, 0.88);
+      backdrop-filter: blur(6px); z-index: 9500; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .legal-modal {
+      background: var(--camel-card); max-width: 680px; width: 100%; border-radius: 16px;
+      border: 2px solid var(--camel-coat); box-shadow: 0 24px 60px rgba(0,0,0,0.45); overflow: hidden;
+    }
+    .legal-modal-header {
+      background: linear-gradient(135deg, var(--tamarind), var(--boho)); color: #FFF; padding: 22px 26px;
+      border-bottom: 3px solid var(--camel-coat);
+    }
+    .legal-modal-header h2 { font-family: var(--font-display); font-size: 1.65rem; margin-top: 4px; color: var(--camel-cream); }
+    .legal-modal-body { padding: 24px 26px; color: var(--texto-principal); font-size: 0.91rem; }
+    .legal-box-item {
+      background: var(--camel-cream); border-left: 4px solid var(--boho); padding: 12px 15px;
+      border-radius: 0 8px 8px 0; margin-bottom: 12px;
+    }
+
+    /* ==========================================================================
+       VENTANA 2: PORTADA PRINCIPAL ANIMADA (SOLO BOTÓN DE BÚSQUEDA DE EXPEDIENTE)
+       ========================================================================== */
+    .hero-animated-wrapper {
+      position: relative; min-height: 78vh;
+      background: radial-gradient(circle at top right, var(--boho) 0%, var(--tamarind) 52%, var(--tamarind-deep) 100%);
+      display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 40px 20px; color: #FFF;
+    }
+    #networkCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.65; }
+    .hero-content {
+      position: relative; z-index: 2; max-width: 820px; text-align: center;
+      background: rgba(36, 16, 14, 0.62); backdrop-filter: blur(10px);
+      padding: 52px 40px; border-radius: 22px; border: 2px solid var(--camel-coat);
+      box-shadow: 0 22px 55px rgba(0,0,0,0.38);
+    }
+    .hero-badge {
+      display: inline-block; background: rgba(197, 160, 125, 0.22); border: 1px solid var(--camel-coat);
+      color: var(--camel-light); padding: 5px 15px; border-radius: 999px; font-size: 0.76rem; font-weight: 700; margin-bottom: 14px;
+    }
+    .hero-content h2 { font-family: var(--font-display); font-size: 2.75rem; line-height: 1.12; margin-bottom: 16px; color: var(--camel-cream); }
+    .hero-content p { font-size: 1rem; color: var(--camel-light); max-width: 650px; margin: 0 auto 30px; }
+
+    /* BOTONES */
+    .btn-primary {
+      background: var(--tamarind);
+      color: var(--camel-cream); border: 1px solid var(--camel-coat); padding: 11px 22px; border-radius: 9px;
+      font-family: var(--font-body); font-weight: 600; font-size: 0.87rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary:hover { background: var(--boho); color: #FFF; transform: translateY(-1px); }
+
+    .btn-camel {
+      background: linear-gradient(135deg, var(--camel-light) 0%, var(--camel-coat) 100%);
+      color: var(--italian-roast); border: 2px solid var(--italian-roast); padding: 15px 34px; border-radius: 12px;
+      font-family: var(--font-body); font-weight: 700; font-size: 1.02rem; cursor: pointer; display: inline-flex; align-items: center; gap: 10px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.32); transition: all 0.2s;
+    }
+    .btn-camel:hover { transform: translateY(-2px); background: var(--camel-cream); }
+
+    .btn-outline {
+      background: var(--camel-coat); color: var(--italian-roast); border: 1px solid var(--italian-roast);
+      padding: 8px 14px; border-radius: 8px; font-family: var(--font-body); font-weight: 700; font-size: 0.8rem; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+    }
+    .btn-outline:hover { background: var(--camel-light); }
+
+    /* TARJETAS Y FORMULARIOS */
+    .card {
+      background: var(--camel-card); border: 1px solid var(--camel-border); border-radius: 14px;
+      padding: 22px; box-shadow: 0 4px 18px rgba(56, 27, 24, 0.06); margin-bottom: 20px;
+    }
+    .card-title {
+      font-family: var(--font-display); font-size: 1.42rem; font-weight: 700; color: var(--tamarind);
+      border-bottom: 2px solid var(--boho-tint); padding-bottom: 10px; margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+
+    .form-group { margin-bottom: 13px; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--texto-principal); margin-bottom: 5px; }
+    .form-control {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--camel-border); border-radius: 8px;
+      background: #FFF; color: var(--texto-principal); font-size: 0.86rem; font-family: var(--font-body);
+    }
+    .form-control:focus { outline: none; border-color: var(--boho); box-shadow: 0 0 0 3px var(--boho-tint); }
+
+    .nca-option {
+      border: 2px solid var(--camel-border); border-radius: 10px; padding: 12px; cursor: pointer;
+      background: var(--camel-cream); transition: all 0.2s; margin-bottom: 10px;
+    }
+    .nca-option.selected { border-color: var(--boho); background: var(--boho-tint); }
+    .captcha-box {
+      background: var(--tamarind); color: var(--camel-cream);
+      font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; letter-spacing: 6px;
+      padding: 10px 18px; border-radius: 8px; border: 1px dashed var(--camel-coat); user-select: none;
+      display: inline-block;
+    }
+
+    /* TABLAS */
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th { background: var(--tamarind); color: var(--camel-cream); text-align: left; padding: 11px 12px; font-weight: 600; }
+    td { padding: 11px 12px; border-bottom: 1px solid var(--camel-border); vertical-align: top; }
+    tr:hover td { background: var(--boho-tint); }
+
+    /* VENTANA 5: SUB-PESTAÑAS EJE Y VISOR SICOR */
+    .eje-subtabs {
+      display: flex; flex-wrap: wrap; gap: 8px; background: var(--camel-card); padding: 12px;
+      border-radius: 12px; border: 1px solid var(--camel-border); margin-bottom: 18px;
+    }
+    .eje-tab-btn {
+      padding: 9px 14px; border-radius: 8px; border: 1px solid var(--camel-border); background: var(--camel-cream);
+      color: var(--texto-principal); font-family: var(--font-body); font-weight: 600; font-size: 0.8rem; cursor: pointer;
+    }
+    .eje-tab-btn.active { background: var(--tamarind); color: var(--camel-cream); border-color: var(--tamarind); }
+    .eje-pane { display: none; }
+    .eje-pane.active { display: block; }
+
+    .visor-layout { display: grid; grid-template-columns: 360px 1fr; gap: 18px; }
+    @media (max-width: 980px) { .visor-layout { grid-template-columns: 1fr; } }
+    .actuados-scroll { max-height: 680px; overflow-y: auto; border: 1px solid var(--camel-border); border-radius: 10px; background: var(--camel-card); }
+    .actuado-row { padding: 11px 13px; border-bottom: 1px solid var(--camel-border); cursor: pointer; }
+    .actuado-row:hover, .actuado-row.active { background: var(--boho-tint); border-left: 4px solid var(--tamarind); }
+    .pdf-frame { width: 100%; height: 610px; border: 1px solid var(--camel-border); border-radius: 10px; background: var(--tamarind-deep); }
+
+    /* BURBUJA FLOTANTE ASISTENTE JURÍDICO "LEX" (ICONO ITALIAN ROAST SOBRE CAMEL COAT) */
+    .lex-bubble-btn {
+      position: fixed; bottom: 24px; right: 24px; width: 68px; height: 68px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--camel-light), var(--camel-coat)); color: var(--italian-roast);
+      border: 2.5px solid var(--italian-roast); box-shadow: 0 10px 28px rgba(42, 22, 18, 0.42);
+      cursor: pointer; z-index: 9100; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 800; letter-spacing: 0.4px;
+    }
+    .lex-bubble-btn:hover { transform: scale(1.06); background: var(--camel-cream); }
+
+    .lex-chat-panel {
+      display: none; position: fixed; bottom: 102px; right: 24px; width: 375px; max-width: calc(100vw - 40px);
+      background: var(--camel-card); border: 2px solid var(--tamarind); border-radius: 16px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.35); z-index: 9100; overflow: hidden;
+    }
+    .lex-chat-header {
+      background: linear-gradient(135deg, var(--tamarind), var(--boho)); color: #FFF; padding: 13px 16px;
+      display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--camel-coat);
+    }
+    .lex-messages { height: 270px; overflow-y: auto; padding: 14px; font-size: 0.83rem; display: flex; flex-direction: column; gap: 10px; }
+    .lex-msg-bot { background: var(--boho-tint); border-left: 3px solid var(--tamarind); padding: 9px 11px; border-radius: 8px; }
+    .lex-msg-user { background: var(--tamarind); color: #FFF; padding: 9px 11px; border-radius: 8px; align-self: flex-end; max-width: 85%; }
+
+    /* DRAWER DE ACCESIBILIDAD Y MODALES DE SERVICIO */
+    .acc-drawer {
+      display: none; position: fixed; top: 44px; right: 16px; width: 390px; max-width: calc(100vw - 32px);
+      max-height: 86vh; overflow-y: auto; background: var(--camel-card); border: 2px solid var(--tamarind);
+      border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.38); z-index: 9400; padding: 18px;
+    }
+    .acc-chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 8px 0 14px; }
+    .acc-chip {
+      padding: 7px 9px; border: 1px solid var(--camel-border); border-radius: 7px; background: var(--camel-cream);
+      font-size: 0.76rem; font-weight: 700; color: var(--texto-principal); cursor: pointer; text-align: left;
+    }
+    .acc-chip.active { background: var(--tamarind); color: var(--camel-cream); border-color: var(--tamarind); }
+
+    .service-modal {
+      display: none; position: fixed; inset: 0; background: rgba(36, 16, 14, 0.82);
+      z-index: 9300; align-items: center; justify-content: center; padding: 18px;
+    }
+    .service-modal.open { display: flex; }
+    .modal-box {
+      background: var(--camel-card); max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto;
+      border-radius: 14px; border: 2px solid var(--camel-coat); padding: 22px;
+    }
+
+    .badge-status {
+      display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 700;
+      background: var(--verde-bg); color: var(--verde-ok); border: 1px solid #B7DEC3;
+    }
+    .badge-boho { background: var(--boho-tint); color: var(--tamarind); border: 1px solid var(--boho); padding: 3px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+
+    /* FICHA RENIEC CON FOTOGRAFÍA REALISTA GENERADA POR IA */
+    .reniec-card {
+      display: flex; gap: 18px; align-items: flex-start; background: linear-gradient(135deg, #FFF, var(--camel-cream));
+      border: 1.5px solid var(--boho); border-radius: 12px; padding: 16px; margin-top: 14px; flex-wrap: wrap;
+    }
+    .reniec-photo-frame {
+      width: 112px; height: 134px; border-radius: 10px; border: 2.5px solid var(--tamarind);
+      background: var(--boho-tint); overflow: hidden; flex-shrink: 0; position: relative;
+      box-shadow: 0 4px 12px rgba(42, 22, 18, 0.18);
+    }
+    .reniec-photo-frame img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .reniec-photo-tag {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(56, 27, 24, 0.85); color: var(--camel-cream);
+      font-size: 0.62rem; text-align: center; padding: 2px 4px; font-weight: 700; letter-spacing: 0.4px;
+    }
+    code { font-family: var(--font-mono); font-size: 0.78rem; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link" data-i18n="skip">Saltar al contenido principal</a>
+  <div id="reading-guide-bar"></div>
+
+  <!-- ==========================================================================
+       VENTANA 1: AVISO LEGAL Y ACADÉMICO (MODAL OBLIGATORIO DE ENTRADA)
+       ========================================================================== -->
+  <div class="legal-backdrop" id="window1Modal" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+    <div class="legal-modal">
+      <div class="legal-modal-header">
+        <span class="hero-badge" style="margin-bottom:6px;" data-i18n="w1_badge">VENTANA 1 DE 5 — CONFORMIDAD NORMATIVA Y ACADÉMICA</span>
+        <h2 id="legalTitle" data-i18n="w1_title">Aviso Legal, Ético y Académico Obligatorio</h2>
+      </div>
+      <div class="legal-modal-body">
+        <div class="legal-box-item">
+          <strong data-i18n="w1_p1_t">1. Finalidad Exclusivamente Académica y de Investigación:</strong>
+          <span data-i18n="w1_p1_b">Esta plataforma constituye un prototipo simulado del Expediente Judicial Electrónico (EJE) desarrollado bajo el marco peruano de Gobierno Digital. No sustituye a los portales oficiales del Poder Judicial del Perú.</span>
+        </div>
+        <div class="legal-box-item">
+          <strong data-i18n="w1_p2_t">2. Tratamiento y Anonimización de Datos:</strong>
+          <span data-i18n="w1_p2_b">Los registros procesales y consultas de interoperabilidad (RENIEC / SUNARP / SUNAT) se presentan con fines demostrativos y control de acceso por niveles de confianza (ID GOB.PE), respetando la protección de datos personales.</span>
+        </div>
+        <div class="legal-box-item">
+          <strong data-i18n="w1_p3_t">3. Carácter Referencial de la Inteligencia Artificial (LEX):</strong>
+          <span data-i18n="w1_p3_b">Los resúmenes automatizados en texto/audio, la generación de escritos y las respuestas del asistente jurídico LEX tienen carácter estrictamente referencial y pedagógico; no constituyen asesoría legal vinculante.</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:18px;">
+          <label style="font-size:0.82rem; font-weight:700; display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="chkAcceptLegal" checked />
+            <span data-i18n="w1_chk">He leído y acepto los términos académicos y legales.</span>
+          </label>
+          <button class="btn-primary" onclick="aceptarAvisoLegal()">
+            <span data-i18n="w1_btn">Aceptar y Continuar a Portada →</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       BARRA SUPERIOR DE OPERABILIDAD (ICONOS EN COLOR ITALIAN ROAST)
+       ========================================================================== -->
+  <header class="top-utility-bar">
+    <div class="utility-left">
+      <span class="icon-badge-camel">
+        <svg class="roast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v18M5 7h14M5 7l-3 6h6l-3-6zm14 0l-3 6h6l-3-6zM8 21h8"/></svg>
+      </span>
+      <span data-i18n="top_brand">PLATAFORMA EJE PERÚ — GOBIERNO DIGITAL JUDICIAL</span>
+    </div>
+    <div class="utility-right">
+      <div class="clock-pill" title="Fecha y Hora Oficial">
+        <span class="icon-badge-camel" style="padding:2px;">
+          <svg class="roast-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </span>
+        <strong id="liveDate">--/--/----</strong>
+        <span>|</span>
+        <span class="icon-badge-camel" style="padding:2px;">
+          <svg class="roast-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </span>
+        <strong id="liveTime">--:--:--</strong>
+      </div>
+      <div class="session-pill" title="Temporizador de Seguridad de Sesión (10 minutos)">
+        <svg class="roast-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+        <span data-i18n="session_lbl">Sesión:</span> <span id="sessionTimer">10:00</span>
+      </div>
+      <select id="langSelector" class="lang-select" onchange="cambiarIdioma(this.value)" aria-label="Seleccionar Idioma">
+        <option value="es">Español</option>
+        <option value="en">English</option>
+        <option value="qu">Quechua (Runasimi)</option>
+        <option value="ay">Aimara (Aymar Aru)</option>
+      </select>
+      <button class="util-btn" onclick="toggleAccDrawer()" aria-label="Abrir Panel de Accesibilidad">
+        <svg class="roast-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="4" r="2"/><path d="M5 9h14M12 9v6m0 0-3 6m3-6 3 6"/></svg>
+        <span data-i18n="acc_btn">Accesibilidad</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CABECERA INSTITUCIONAL + BARRA DE ICONOS ITALIAN ROAST SOBRE CAMEL COAT -->
+  <div class="inst-header">
+    <div class="inst-header-top">
+      <div class="brand-group">
+        <div class="brand-emblem" aria-hidden="true">
+          <svg class="roast-icon" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 3v18M5 7h14M5 7l-3 6h6l-3-6zm14 0l-3 6h6l-3-6zM8 21h8"/>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1 data-i18n="platform_title">Sistema de Consulta de Expedientes Judiciales</h1>
+          <p data-i18n="platform_sub">Corte Superior de Justicia de Puno • Expediente Judicial Electrónico (EJE) &amp; Interoperabilidad Estatal</p>
+        </div>
+      </div>
+      <div>
+        <span class="hero-badge" id="badgeNcaHeader">ID GOB.PE: NCA 1 (Consulta Pública)</span>
+      </div>
+    </div>
+
+    <!-- ICONOS ITALIAN ROAST DE NAVEGACIÓN Y CONSULTA DEBAJO DEL NOMBRE DE LA PLATAFORMA -->
+    <nav class="service-icons-bar" aria-label="Accesos Directos Institucionales">
+      <button class="srv-icon-btn" onclick="irAVentana(2)">
+        <svg class="roast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z"/></svg>
+        <span data-i18n="nav_home">Inicio</span>
+      </button>
+      <button class="srv-icon-btn" onclick="abrirModalServicio('guias')">
+        <svg class="roast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span data-i18n="nav_guides">Guías</span>
+      </button>
+      <button class="srv-icon-btn" onclick="abrirModalServicio('faq')">
+        <svg class="roast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span data-i18n="nav_faq">Preguntas Frecuentes</span>
+      </button>
+      <button class="srv-icon-btn" onclick="abrirModalServicio('sunat')">
+        <svg class="roast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
+        <span data-i18n="nav_sunat">Consulta a SUNAT</span>
+      </button>
+      <button class="srv-icon-btn" onclick="abrirModalServicio('reniec')">
+        <svg class="roast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h5M14 14h5"/></svg>
+        <span data-i18n="nav_reniec">Consulta a RENIEC</span>
+      </button>
+      <button class="srv-icon-btn" onclick="abrirModalServicio('escritos')">
+        <svg class="roast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span data-i18n="nav_draft">Generador de Escritos</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- INDICADOR DE PROGRESO DE LAS 5 VENTANAS -->
+  <div class="window-stepper">
+    <button class="step-pill completed" id="pillWin1" onclick="document.getElementById('window1Modal').style.display='flex'" data-i18n="step1">1. Aviso Legal</button>
+    <button class="step-pill active" id="pillWin2" onclick="irAVentana(2)" data-i18n="step2">2. Portada Animada</button>
+    <button class="step-pill" id="pillWin3" onclick="irAVentana(3)" data-i18n="step3">3. ID GOB.PE y Búsqueda CEJ</button>
+    <button class="step-pill" id="pillWin4" onclick="irAVentana(4)" data-i18n="step4">4. Resultados y Ficha</button>
+    <button class="step-pill" id="pillWin5" onclick="irAVentana(5)" data-i18n="step5">5. Visor Integral EJE (41 Actuados)</button>
+  </div>
+
+  <main id="main-content">
+    <!-- ========================================================================
+         VENTANA 2: PORTADA PRINCIPAL ANIMADA (SOLO BOTÓN BÚSQUEDA DE EXPEDIENTE)
+         ======================================================================== -->
+    <section id="ventana2" class="window-section active">
+      <div class="hero-animated-wrapper">
+        <canvas id="networkCanvas"></canvas>
+        <div class="hero-content">
+          <div class="brand-emblem" style="margin: 0 auto 18px; width:76px; height:76px;">
+            <svg class="roast-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 3v18M4 7h16M4 7l-3 6h6l-3-6zm16 0l-3 6h6l-3-6zM7 21h10"/>
+            </svg>
+          </div>
+          <span class="hero-badge" data-i18n="hero_badge">EXPEDIENTE JUDICIAL ELECTRÓNICO • JUSTICIA DIGITAL</span>
+          <h2 data-i18n="hero_title">Sistema de Consulta de Expedientes Judiciales</h2>
+          <p data-i18n="hero_desc">
+            Plataforma integral de trazabilidad procesal, verificación criptográfica SHA-256, firma digital con presunción legal de autoría e interoperabilidad estatal en tiempo real.
+          </p>
+          <div style="display:flex; justify-content:center;">
+            <button class="btn-camel" onclick="irAVentana(3)">
+              <svg class="roast-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <span data-i18n="hero_cta">Búsqueda de Expediente</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         VENTANA 3: PORTAL DE AUTENTICACIÓN (ID GOB.PE) Y BÚSQUEDA CEJ
+         ======================================================================== -->
+    <section id="ventana3" class="window-section">
+      <div class="container">
+        <div class="grid-2">
+          <!-- COLUMNA IZQUIERDA: AUTENTICACIÓN FEDERADA ID GOB.PE -->
+          <div class="card">
+            <div class="card-title">
+              <span style="display:flex; align-items:center; gap:9px;">
+                <span class="icon-badge-camel"><svg class="roast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <span data-i18n="w3_auth_title">Autenticación Federada ID GOB.PE</span>
+              </span>
+              <span class="badge-status" data-i18n="w3_auth_badge">Identidad Digital</span>
+            </div>
+            <p style="font-size:0.83rem; color:var(--texto-secundario); margin-bottom:14px;" data-i18n="w3_auth_desc">
+              Seleccione el Nivel de Confianza de Autenticación (NCA) para determinar los privilegios de visualización de datos personales y validez probatoria:
+            </p>
+
+            <div class="nca-option selected" id="ncaCard1" onclick="seleccionarNCA(1)">
+              <strong data-i18n="nca1_t">NCA 1 — Consulta Pública Anonimizada (Nivel Básico)</strong>
+              <p style="font-size:0.78rem; color:var(--texto-secundario); margin-top:3px;" data-i18n="nca1_b">
+                Acceso ciudadano abierto. Aplica seudonimización automática de nombres y documentos de personas naturales.
+              </p>
+            </div>
+
+            <div class="nca-option" id="ncaCard2" onclick="seleccionarNCA(2)">
+              <strong data-i18n="nca2_t">NCA 2 — Credenciales Verificadas / Clave SOL (Nivel Medio)</strong>
+              <p style="font-size:0.78rem; color:var(--texto-secundario); margin-top:3px;" data-i18n="nca2_b">
+                Autenticación mediante usuario y contraseña validados ante PIDE. Habilita visualización nominativa de partes y casillas SINOE.
+              </p>
+            </div>
+
+            <div class="nca-option" id="ncaCard3" onclick="seleccionarNCA(3)">
+              <strong data-i18n="nca3_t">NCA 3 — DNIe / DNId con Firma Digital (Nivel Alto)</strong>
+              <p style="font-size:0.78rem; color:var(--texto-secundario); margin-top:3px;" data-i18n="nca3_b">
+                Certificado digital raíz RENIEC. Aplica inversión de la carga de la prueba sobre autoría e integridad documental.
+              </p>
+            </div>
+
+            <div class="form-group" style="margin-top:12px;">
+              <label data-i18n="w3_role_lbl">Rol Procesal / Privilegio de Acceso</label>
+              <select id="selectRolAcceso" class="form-control">
+                <option value="CIUDADANO">Ciudadano / Investigador Académico</option>
+                <option value="ABOGADO">Abogado Patrocinante / Apoderado Judicial</option>
+                <option value="PARTE">Parte Procesal Acreditada</option>
+                <option value="MAGISTRADO">Operador Jurisdiccional / Especialista Legal</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- COLUMNA DERECHA: BÚSQUEDA TIPO CEJ + AUTOCOMPLETAR + CAPTCHA DINÁMICO -->
+          <div class="card">
+            <div class="card-title">
+              <span style="display:flex; align-items:center; gap:9px;">
+                <span class="icon-badge-camel"><svg class="roast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+                <span data-i18n="w3_search_title">Búsqueda de Expedientes (CEJ)</span>
+              </span>
+              <button class="btn-outline" onclick="autocompletarBusquedaCEJ()">
+                <svg class="roast-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                <span data-i18n="w3_autofill">Autocompletar Ingreso Directo</span>
+              </button>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:16px;">
+              <button class="eje-tab-btn active" id="tabModoCodigo" onclick="cambiarModoBusqueda('codigo')" data-i18n="w3_tab_code">Por Código de Expediente</button>
+              <button class="eje-tab-btn" id="tabModoFiltros" onclick="cambiarModoBusqueda('filtros')" data-i18n="w3_tab_filters">Por Filtros Institucionales</button>
+            </div>
+
+            <div id="panelModoCodigo">
+              <div class="form-group">
+                <label data-i18n="w3_code_lbl">Código Único de Expediente (Formato Estándar PJ: XXXXX-XXXX-X-XXXX-XX-XX-XX)</label>
+                <input type="text" id="inputCodigoExp" class="form-control" placeholder="Ej. 00530-2023-0-2101-JR-CI-03" style="font-weight:700; letter-spacing:0.6px;" />
+              </div>
+            </div>
+
+            <div id="panelModoFiltros" style="display:none;">
+              <div class="grid-3">
+                <div class="form-group">
+                  <label data-i18n="f_dist">Distrito Judicial</label>
+                  <select id="fDistrito" class="form-control">
+                    <option value="PUNO">PUNO</option>
+                    <option value="LIMA">LIMA</option>
+                    <option value="AREQUIPA">AREQUIPA</option>
+                    <option value="CUSCO">CUSCO</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_inst">Instancia</label>
+                  <select id="fInstancia" class="form-control">
+                    <option value="JUZGADO ESPECIALIZADO">JUZGADO ESPECIALIZADO</option>
+                    <option value="SALA SUPERIOR">SALA SUPERIOR</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_esp">Especialidad</label>
+                  <select id="fEspecialidad" class="form-control">
+                    <option value="CIVIL">CIVIL</option>
+                    <option value="COMERCIAL">COMERCIAL</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_year">Año</label>
+                  <input type="text" id="fAnio" class="form-control" placeholder="2023" />
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_num">N° de Expediente</label>
+                  <input type="text" id="fNumero" class="form-control" placeholder="00530" />
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_party">Apellidos / Razón Social</label>
+                  <input type="text" id="fParte" class="form-control" placeholder="BBVA / INTIQA / AQUISE" />
+                </div>
+              </div>
+            </div>
+
+            <!-- VERIFICACIÓN POR CAPTCHA DINÁMICO -->
+            <div class="card" style="background:var(--camel-cream); padding:14px; margin-top:10px;">
+              <label style="font-size:0.78rem; font-weight:700; display:block; margin-bottom:8px;" data-i18n="w3_cap_lbl">
+                Verificación de Seguridad (CAPTCHA Dinámico — Audio Disponible)
+              </label>
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <div class="captcha-box" id="captchaDisplay">K7P9M</div>
+                <button type="button" class="btn-outline" onclick="generarCaptcha()" title="Refrescar código">↻</button>
+                <button type="button" class="btn-outline" onclick="leerTextoVoz('El código de seguridad captcha es: ' + captchaActual.split('').join(' '))">Audio</button>
+                <input type="text" id="inputCaptcha" class="form-control" style="max-width:160px; font-weight:700; text-transform:uppercase;" placeholder="Código" />
+              </div>
+            </div>
+
+            <div id="searchErrorMsg" style="color:#8B1E1E; font-size:0.82rem; font-weight:700; margin-bottom:10px;"></div>
+
+            <button class="btn-primary" style="width:100%; justify-content:center; padding:13px;" onclick="ejecutarBusquedaCEJ()">
+              <span data-i18n="w3_submit">Consultar Expediente en Base EJE →</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         VENTANA 4: RESULTADOS ENCONTRADOS Y FICHA RESUMEN DEL EXPEDIENTE
+         ======================================================================== -->
+    <section id="ventana4" class="window-section">
+      <div class="container">
+        <div class="card">
+          <div class="card-title">
+            <span data-i18n="w4_title">Resultados Coincidentes — Ficha Resumen del Expediente</span>
+            <span class="badge-status" id="win4NcaBadge">Nivel ID GOB.PE: NCA 1</span>
+          </div>
+
+          <div style="overflow-x:auto; margin-bottom:20px;">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_exp">N° de Expediente</th>
+                  <th data-i18n="th_org">Órgano Jurisdiccional</th>
+                  <th data-i18n="th_judge">Juez / Especialista</th>
+                  <th data-i18n="th_mat">Materia y Proceso</th>
+                  <th data-i18n="th_state">Estado Actual</th>
+                  <th data-i18n="th_act">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong style="color:var(--tamarind);">{{ exp.codigo_expediente }}</strong><br><small>Inicio: {{ exp.fecha_inicio }}</small></td>
+                  <td>{{ exp.organo_jurisdiccional }}<br><small>2° Inst.: {{ exp.organo_segunda_instancia }}</small></td>
+                  <td><strong>Juez:</strong> {{ exp.juez }}<br><strong>Esp.:</strong> {{ exp.especialista_legal }}</td>
+                  <td>{{ exp.materia }}<br><span class="badge-boho">{{ exp.proceso }}</span></td>
+                  <td><span class="badge-status">{{ exp.estado_actual }}</span></td>
+                  <td>
+                    <button class="btn-primary" onclick="irAVentana(5)">
+                      <span data-i18n="w4_enter">Ingresar al Expediente Electrónico →</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="font-family:var(--font-display); font-size:1.3rem; color:var(--tamarind); margin-bottom:10px;" data-i18n="w4_parties_title">
+            Partes Procesales (Control de Privacidad según Nivel de Confianza ID GOB.PE)
+          </h3>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_role">Rol Procesal</th>
+                  <th data-i18n="th_name">Apellidos y Nombres / Razón Social</th>
+                  <th data-i18n="th_doc">Documento de Identidad / RUC</th>
+                  <th data-i18n="th_rep">Representante / Defensa Técnica</th>
+                  <th data-i18n="th_box">Casilla SINOE</th>
+                </tr>
+              </thead>
+              <tbody id="tablaPartesWin4"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         VENTANA 5: VISOR INTEGRAL DEL EXPEDIENTE JUDICIAL ELECTRÓNICO (EJE)
+         ======================================================================== -->
+    <section id="ventana5" class="window-section">
+      <div class="container">
+        <!-- BARRA DE SÍNTESIS GLOBAL CON IA (TEXTO Y AUDIO DE TODO EL EXPEDIENTE) -->
+        <div class="card" style="background:linear-gradient(135deg, var(--tamarind-deep), var(--tamarind), var(--boho)); color:#FFF; border:2px solid var(--camel-coat);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+              <span class="hero-badge">EXPEDIENTE N° {{ exp.codigo_expediente }} • 41 ACTUADOS • 335 FOLIOS</span>
+              <h2 style="font-family:var(--font-display); font-size:1.62rem; margin-top:4px; color:var(--camel-cream);" data-i18n="w5_title">
+                Visor Integral del Expediente Judicial Electrónico (EJE)
+              </h2>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn-camel" style="padding:9px 16px; font-size:0.82rem;" onclick="mostrarResumenGlobalIA()">
+                <span data-i18n="btn_ai_case_txt">Resumen IA del Caso (Texto)</span>
+              </button>
+              <button class="srv-icon-btn" onclick="escucharResumenGlobalIA()">
+                <span data-i18n="btn_ai_case_aud">Escuchar Resumen del Caso (Audio)</span>
+              </button>
+              <button class="srv-icon-btn" onclick="detenerVoz()" data-i18n="btn_stop_aud">Detener Audio</button>
+            </div>
+          </div>
+          <div id="boxResumenGlobalIA" style="display:none; margin-top:14px; background:rgba(255,255,255,0.1); padding:14px; border-radius:10px; border-left:4px solid var(--camel-coat); font-size:0.86rem;">
+            <strong data-i18n="ai_exec_lbl">Síntesis Ejecutiva Generada por LEX IA:</strong><br>
+            <span id="textoResumenGlobalIA">{{ exp.resumen_ia_general }}</span>
+          </div>
+        </div>
+
+        <!-- SUB-PESTAÑAS DE MÓDULOS EJE -->
+        <div class="eje-subtabs">
+          <button class="eje-tab-btn active" onclick="cambiarSubtabEJE('paneVisor', this)" data-i18n="tab_visor">Visor de Actuados &amp; Representación Imprimible</button>
+          <button class="eje-tab-btn" onclick="cambiarSubtabEJE('paneIndice', this)" data-i18n="tab_index">Índice Digital Firmado (IOFE)</button>
+          <button class="eje-tab-btn" onclick="cambiarSubtabEJE('paneCvd', this)" data-i18n="tab_cvd">Validador CVD &amp; Copia Certificada Digital</button>
+          <button class="eje-tab-btn" onclick="cambiarSubtabEJE('paneCasilla', this)" data-i18n="tab_cud">Casilla Única Electrónica (cud@peru.gob.pe)</button>
+          <button class="eje-tab-btn" onclick="cambiarSubtabEJE('paneMesa', this)" data-i18n="tab_mesa">Mesa Digital Perú</button>
+          <button class="eje-tab-btn" onclick="cambiarSubtabEJE('paneInter', this)" data-i18n="tab_inter">Audiencia Digital &amp; Datos Abiertos</button>
+        </div>
+
+        <!-- PANE 1: VISOR DE ACTUADOS PDF + METADATOS ARCHIVÍSTICOS + RESUMEN IA POR ACTUADO -->
+        <div id="paneVisor" class="eje-pane active">
+          <div class="visor-layout">
+            <div>
+              <div class="card" style="padding:14px; margin-bottom:10px;">
+                <input type="text" id="filtroActuadosInput" class="form-control" placeholder="Filtrar 41 actuados por título, resolución o fecha..." onkeyup="cargarListaActuados()" />
+                <label style="font-size:0.76rem; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:8px; cursor:pointer;">
+                  <input type="checkbox" id="chkSoloHitos" onchange="cargarListaActuados()" />
+                  <span data-i18n="chk_milestones">Mostrar solo hitos procesales clave</span>
+                </label>
+              </div>
+              <div class="actuados-scroll" id="listaActuadosContainer"></div>
+            </div>
+
+            <div class="card" style="padding:18px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                <div>
+                  <span class="badge-boho" id="visorFojasBadge">Fojas 01 - 20</span>
+                  <h3 id="visorTituloActuado" style="font-family:var(--font-display); font-size:1.35rem; color:var(--tamarind); margin-top:4px;">Seleccione un actuado</h3>
+                  <small id="visorSubtituloActuado" style="color:var(--texto-secundario);"></small>
+                </div>
+                <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                  <button class="btn-primary" style="padding:7px 12px; font-size:0.78rem;" onclick="resumirActuadoTexto()" data-i18n="btn_act_txt">Resumir Actuado (Texto)</button>
+                  <button class="btn-outline" onclick="resumirActuadoAudio()" data-i18n="btn_act_aud">Resumir Actuado (Audio)</button>
+                  <button class="btn-outline" onclick="generarRepresentacionImprimible()" data-i18n="btn_rep_imp">Representación Imprimible</button>
+                  <a id="btnDescargarPdfReal" href="#" target="_blank" class="btn-outline" data-i18n="btn_open_pdf">Abrir PDF ↗</a>
+                </div>
+              </div>
+
+              <div id="boxResumenActuadoIA" style="display:none; background:var(--boho-tint); border-left:4px solid var(--tamarind); padding:11px 14px; border-radius:8px; margin-bottom:12px; font-size:0.83rem;"></div>
+
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:8px; background:var(--camel-cream); padding:10px; border-radius:8px; border:1px solid var(--camel-border); font-size:0.75rem; margin-bottom:12px;">
+                <div><strong>Código CVD:</strong> <span id="metaCvd">--</span></div>
+                <div><strong>Sello de Tiempo (TSA):</strong> <span id="metaFechaHora">--</span></div>
+                <div><strong>Firma Digital:</strong> <span id="metaFirma">--</span></div>
+                <div style="grid-column:1/-1;"><strong>Integridad SHA-256:</strong> <code id="metaSha256" style="color:var(--tamarind); font-weight:700;">--</code></div>
+              </div>
+
+              <iframe id="iframePdfVisor" class="pdf-frame" title="Visor PDF SICOR"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANE 2: ÍNDICE DIGITAL FIRMADO IOFE -->
+        <div id="paneIndice" class="eje-pane">
+          <div class="card">
+            <div class="card-title">
+              <span data-i18n="idx_title">Índice Digital Firmado de Cierre (IOFE)</span>
+              <span class="badge-status" data-i18n="idx_badge">ÍNDICE CERRADO Y FIRMADO DIGITALMENTE</span>
+            </div>
+            <p style="font-size:0.83rem; margin-bottom:14px;" data-i18n="idx_desc">
+              Relación cronológica inalterable de los 41 documentos electrónicos incorporados al expediente, con foliado correlativo, sello de tiempo y huella criptográfica SHA-256 verificable.
+            </p>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>N°</th>
+                    <th>Fojas</th>
+                    <th>Fecha y Hora</th>
+                    <th>Documento / Actuado</th>
+                    <th>CVD</th>
+                    <th>Huella SHA-256</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaIndiceDigital"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANE 3: VALIDADOR CVD Y COPIA CERTIFICADA DIGITAL -->
+        <div id="paneCvd" class="eje-pane">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span data-i18n="cvd_title">Validador de Código de Verificación Digital (CVD)</span></div>
+              <p style="font-size:0.83rem; margin-bottom:12px;" data-i18n="cvd_desc">
+                Ingrese el Código de Verificación Digital (CVD) consignado en la representación imprimible (ejemplo: CVD-2025-00530-041) para contrastar su autenticidad contra el repositorio EJE:
+              </p>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="inputCvdValidar" class="form-control" value="CVD-2025-00530-041" />
+                <button class="btn-primary" onclick="validarCodigoCVD()" data-i18n="cvd_btn">Verificar CVD</button>
+              </div>
+              <div id="resultadoValidadorCvd" style="margin-top:14px;"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span data-i18n="cert_title">Emisión de Copia Certificada Digital</span></div>
+              <p style="font-size:0.83rem; margin-bottom:12px;" data-i18n="cert_desc">
+                Genera una constancia de copia certificada digital con código CVD, enlace de verificación y sello electrónico del Especialista Legal.
+              </p>
+              <button class="btn-primary" onclick="generarRepresentacionImprimible()" data-i18n="cert_btn">
+                Generar Copia Certificada Digital del Actuado Actual
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANE 4: CASILLA ÚNICA ELECTRÓNICA -->
+        <div id="paneCasilla" class="eje-pane">
+          <div class="card">
+            <div class="card-title">
+              <span data-i18n="cud_title">Casilla Única Electrónica (cud@peru.gob.pe)</span>
+              <span class="badge-boho" data-i18n="cud_badge">Cómputo Automático al Día Hábil Siguiente</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Constancia</th>
+                  <th>Resolución Notificada</th>
+                  <th>Depósito en Casilla</th>
+                  <th>Surte Efectos (Día Hábil Sig.)</th>
+                  <th>Vencimiento de Plazo</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tablaCasillaCud"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PANE 5: MESA DIGITAL PERÚ -->
+        <div id="paneMesa" class="eje-pane">
+          <div class="card">
+            <div class="card-title">
+              <span data-i18n="mesa_title">Mesa Digital Perú — Ingreso de Escritos 24/7</span>
+              <span class="badge-status" data-i18n="mesa_badge">Agente Automatizado Activo</span>
+            </div>
+            <div class="form-group">
+              <label data-i18n="mesa_lbl">Sumilla del Escrito a Presentar</label>
+              <input type="text" id="inputSumillaMesa" class="form-control" value="SOLICITA EXPEDICIÓN DE COPIAS CERTIFICADAS DIGITALES DEL AUTO DE ARCHIVO DEFINITIVO" />
+            </div>
+            <button class="btn-primary" onclick="enviarEscritoMesaDigital()" data-i18n="mesa_btn">Presentar Escrito y Emitir Cargo Firmado</button>
+            <div id="resultadoCargoMesa" style="margin-top:14px;"></div>
+          </div>
+        </div>
+
+        <!-- PANE 6: AUDIENCIA DIGITAL & DATOS ABIERTOS -->
+        <div id="paneInter" class="eje-pane">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span data-i18n="aud_title">Sala de Audiencia Digital</span></div>
+              <p style="font-size:0.84rem; margin-bottom:10px;" data-i18n="aud_desc">
+                Registro de Vista de la Causa (Res. N° 011-2024): 1° Sala Civil de Puno — Fecha: 16/07/2024 a las 10:35 a.m. (Sala Virtual). Grabación audiovisual indexada en repositorio EJE con hash de integridad.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title"><span data-i18n="open_title">Interoperabilidad Estatal &amp; Datos Abiertos</span></div>
+              <p style="font-size:0.84rem; margin-bottom:10px;" data-i18n="open_desc">
+                Conexión activa mediante Plataforma Nacional de Interoperabilidad (PIDE): RENIEC (identidad), SUNARP (vigencias de poder y levantamiento de embargos) y Banco de la Nación / Págalo.pe (aranceles judiciales).
+              </p>
+              <a href="/api/actuados" target="_blank" class="btn-outline" data-i18n="open_btn">Exportar Dataset JSON (Datos Abiertos)</a>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span data-i18n="log_title">Bitácora de Auditoría y Trazabilidad Inmutable</span></div>
+            <table>
+              <thead>
+                <tr><th>Fecha / Hora</th><th>Actor</th><th>Evento Registrado</th><th>Referencia</th><th>Hash</th></tr>
+              </thead>
+              <tbody id="tablaAuditoriaWin5"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==========================================================================
+       BURBUJA FLOTANTE IA "LEX" (ICONO ITALIAN ROAST SOBRE CAMEL COAT)
+       ========================================================================== -->
+  <button class="lex-bubble-btn" onclick="toggleLexChat()" aria-label="Abrir Asistente Jurídico LEX">
+    <svg class="roast-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+      <path d="M12 2v20M4 6h16M4 6l-2.5 5h5L4 6zm16 0l-2.5 5h5L20 6zM9 22h6"/>
+    </svg>
+    <span>LEX IA</span>
+  </button>
+
+  <div class="lex-chat-panel" id="lexChatPanel">
+    <div class="lex-chat-header">
+      <div style="display:flex; align-items:center; gap:9px;">
+        <span class="icon-badge-camel">
+          <svg class="roast-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 2v20M4 6h16M4 6l-2.5 5h5L4 6zm16 0l-2.5 5h5L20 6zM9 22h6"/>
+          </svg>
+        </span>
+        <div>
+          <strong style="font-size:0.92rem;">LEX — Asistente Jurídico IA</strong>
+          <div style="font-size:0.7rem; color:var(--camel-light);" data-i18n="lex_sub">Consultas del Exp. 00530-2023 &amp; Gobierno Digital</div>
+        </div>
+      </div>
+      <button onclick="toggleLexChat()" style="background:none; border:none; color:#FFF; font-size:1.1rem; cursor:pointer;">✕</button>
+    </div>
+    <div class="lex-messages" id="lexMessages">
+      <div class="lex-msg-bot" data-i18n="lex_welcome">
+        Hola, soy LEX. Puedo responder consultas sobre las partes, resoluciones, el Auto de Vista N° 249-2024, el acuerdo de pago o el archivo definitivo (Res. N° 20). ¿Qué deseas consultar?
+      </div>
+    </div>
+    <div style="padding:10px; border-top:1px solid var(--camel-border); display:flex; gap:6px;">
+      <input type="text" id="lexInput" class="form-control" placeholder="Escribe tu consulta..." onkeydown="if(event.key==='Enter') enviarConsultaLex()" />
+      <button class="btn-primary" style="padding:8px 12px;" onclick="enviarConsultaLex()" data-i18n="lex_send">Enviar</button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       PANEL DE ACCESIBILIDAD WCAG 2.2 NIVEL AA
+       ========================================================================== -->
+  <aside class="acc-drawer" id="accDrawer" aria-label="Opciones de Accesibilidad">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--boho-tint); padding-bottom:8px; margin-bottom:12px;">
+      <strong style="font-family:var(--font-display); font-size:1.3rem; color:var(--tamarind);" data-i18n="acc_title">Accesibilidad (WCAG 2.2 AA)</strong>
+      <button onclick="toggleAccDrawer()" style="background:none; border:none; font-size:1.1rem; cursor:pointer;">✕</button>
+    </div>
+
+    <strong style="font-size:0.78rem; color:var(--tamarind);">Perfiles rápidos</strong>
+    <div class="acc-chip-grid">
+      <button class="acc-chip" id="prof-lowvision" onclick="togglePerfilAcc('lowvision')">Baja visión</button>
+      <button class="acc-chip" id="prof-assisted" onclick="togglePerfilAcc('assisted')">Lectura asistida</button>
+      <button class="acc-chip" id="prof-colorblind" onclick="togglePerfilAcc('colorblind')">Daltonismo</button>
+      <button class="acc-chip" id="prof-dyslexia" onclick="togglePerfilAcc('dyslexia')">Dislexia</button>
+      <button class="acc-chip" id="prof-adhd" onclick="togglePerfilAcc('adhd')">Concentración (TDAH)</button>
+      <button class="acc-chip" id="prof-motor" onclick="togglePerfilAcc('motor')">Movilidad reducida</button>
+      <button class="acc-chip" id="prof-light" onclick="togglePerfilAcc('light')">Sensibilidad a luz</button>
+    </div>
+
+    <strong style="font-size:0.78rem; color:var(--tamarind);">Lectura en voz alta</strong>
+    <div style="display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;">
+      <button class="btn-outline" onclick="leerPaginaCompleta()">Leer la página</button>
+      <button class="btn-outline" onclick="leerSeleccion()">Leer selección</button>
+      <button class="btn-outline" onclick="pausarReanudarVoz()">Pausar</button>
+      <button class="btn-outline" onclick="detenerVoz()">Detener</button>
+    </div>
+    <div style="font-size:0.76rem; margin-bottom:8px;">
+      Velocidad de lectura: <strong id="lblVoiceRate">×1.0</strong>
+      <input type="range" min="0.6" max="1.8" step="0.1" value="1.0" style="width:100%;" oninput="cambiarVelocidadVoz(this.value)" />
+      <label style="display:flex; align-items:center; gap:6px; margin-top:5px;">
+        <input type="checkbox" id="chkHoverRead" /> Leer al pasar el cursor o enfocar
+      </label>
+    </div>
+
+    <strong style="font-size:0.78rem; color:var(--tamarind);">Tamaño y tipo de letra</strong>
+    <div style="display:flex; align-items:center; gap:8px; margin:8px 0;">
+      <button class="btn-outline" onclick="ajustarTexto(-10)">A−</button>
+      <strong id="lblFontScale" style="font-size:0.82rem;">100%</strong>
+      <button class="btn-outline" onclick="ajustarTexto(10)">A+</button>
+      <select class="form-control" style="padding:5px 8px; font-size:0.76rem;" onchange="cambiarTipografia(this.value)">
+        <option value="orig">Tipografía: Original</option>
+        <option value="legible">Alta legibilidad</option>
+        <option value="dislexia">Amigable (dislexia)</option>
+      </select>
+    </div>
+    <div style="font-size:0.74rem; display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
+      <div>Letras: <input type="range" min="0" max="4" value="0" style="width:100%;" oninput="document.body.style.letterSpacing=this.value+'px'" /></div>
+      <div>Palabras: <input type="range" min="0" max="8" value="0" style="width:100%;" oninput="document.body.style.wordSpacing=this.value+'px'" /></div>
+      <div>Interlineado: <input type="range" min="1.5" max="2.2" step="0.1" value="1.5" style="width:100%;" oninput="document.body.style.lineHeight=this.value" /></div>
+    </div>
+    <label style="font-size:0.76rem; display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+      <input type="checkbox" onchange="document.body.classList.toggle('acc-left-align', this.checked)" /> Alinear texto a la izquierda
+    </label>
+
+    <strong style="font-size:0.78rem; color:var(--tamarind);">Color, Guías, Navegación y Control por Voz</strong>
+    <div style="display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 12px;">
+      <button class="btn-outline" onclick="document.body.classList.toggle('acc-high-contrast')">Alto contraste</button>
+      <button class="btn-outline" onclick="toggleGuiaLectura()">Guías de lectura</button>
+      <button class="btn-outline" onclick="document.body.classList.toggle('acc-focus-strong')">Foco visible</button>
+      <button class="btn-outline" onclick="document.body.classList.toggle('acc-no-motion')">Reducir movimiento</button>
+      <button class="btn-outline" onclick="activarControlPorVoz()">Control por voz</button>
+    </div>
+
+    <div style="background:var(--camel-cream); padding:10px; border-radius:8px; font-size:0.72rem; color:var(--texto-secundario); margin-bottom:10px;">
+      <strong>Atajos de teclado:</strong> Alt+1 (Portada) | Alt+2 (Búsqueda) | Alt+3 (Expediente) | Alt+A (Accesibilidad)<br><br>
+      <strong>Declaración de accesibilidad:</strong> Este prototipo académico busca cumplir las pautas <strong>WCAG 2.2 nivel AA</strong>: navegación completa por teclado, etiquetas y roles ARIA, enlace para saltar al contenido, contraste suficiente, texto escalable hasta 200 %, avisos para lectores de pantalla, alternativas de audio para el captcha y respeto por la preferencia de «reducir movimiento» del sistema. Tus ajustes se guardan solo en este dispositivo.
+    </div>
+
+    <button class="btn-primary" style="width:100%; justify-content:center;" onclick="restablecerAccesibilidad()">
+      Restablecer todo
+    </button>
+  </aside>
+
+  <!-- ==========================================================================
+       MODAL MULTIUSO PARA ICONOS DE SERVICIO (GUÍAS, FAQ, SUNAT, RENIEC, ESCRITOS)
+       ========================================================================== -->
+  <div class="service-modal" id="serviceModal">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--boho-tint); padding-bottom:10px; margin-bottom:14px;">
+        <h3 id="serviceModalTitle" style="font-family:var(--font-display); font-size:1.45rem; color:var(--tamarind);">Servicio Institucional</h3>
+        <button onclick="cerrarModalServicio()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+      </div>
+      <div id="serviceModalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    let ncaSeleccionado = 1;
+    let modoBusqueda = 'codigo';
+    let captchaActual = 'K7P9M';
+    let segundosSesion = 600;
+    let actuadoActualData = null;
+    let voiceRate = 1.0;
+    let fontScale = 100;
+    let idiomaActual = 'es';
+
+    // 1. RELOJ EN VIVO Y CONTADOR DE SESIÓN DE 10 MINUTOS
+    function actualizarRelojYSesion() {
+      const ahora = new Date();
+      document.getElementById('liveDate').textContent = ahora.toLocaleDateString('es-PE');
+      document.getElementById('liveTime').textContent = ahora.toLocaleTimeString('es-PE');
+
+      if (segundosSesion > 0) {
+        segundosSesion--;
+        const min = String(Math.floor(segundosSesion / 60)).padStart(2, '0');
+        const seg = String(segundosSesion % 60).padStart(2, '0');
+        document.getElementById('sessionTimer').textContent = `${min}:${seg}`;
+      } else {
+        document.getElementById('sessionTimer').textContent = '00:00';
+      }
+    }
+    setInterval(actualizarRelojYSesion, 1000);
+    actualizarRelojYSesion();
+
+    // 2. VENTANA 1: AVISO LEGAL OBLIGATORIO
+    function aceptarAvisoLegal() {
+      if (!document.getElementById('chkAcceptLegal').checked) {
+        alert('Debe marcar la casilla de aceptación y conformidad para ingresar.');
+        return;
+      }
+      document.getElementById('window1Modal').style.display = 'none';
+      irAVentana(2);
+    }
+
+    function irAVentana(num) {
+      document.querySelectorAll('.window-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.step-pill').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById('ventana' + num);
+      if (target) target.classList.add('active');
+      const pill = document.getElementById('pillWin' + num);
+      if (pill) pill.classList.add('active');
+      if (num === 5) {
+        cargarListaActuados();
+        cargarCasillaCUD();
+        cargarAuditoria();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 3. FONDO ANIMADO DE PARTÍCULAS CAMEL COAT / NODOS JUDICIALES (VENTANA 2)
+    (function iniciarParticulas() {
+      const canvas = document.getElementById('networkCanvas');
+      const ctx = canvas.getContext('2d');
+      let w, h, nodos = [];
+      function resize() {
+        w = canvas.width = canvas.offsetWidth || window.innerWidth;
+        h = canvas.height = canvas.offsetHeight || 560;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+      for (let i = 0; i < 52; i++) {
+        nodos.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.75, vy: (Math.random() - 0.5) * 0.75 });
+      }
+      function animar() {
+        ctx.clearRect(0, 0, w, h);
+        nodos.forEach((n, idx) => {
+          n.x += n.vx; n.y += n.vy;
+          if (n.x < 0 || n.x > w) n.vx *= -1;
+          if (n.y < 0 || n.y > h) n.vy *= -1;
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, 2.8, 0, Math.PI * 2);
+          ctx.fillStyle = '#DFC7AE';
+          ctx.fill();
+          for (let j = idx + 1; j < nodos.length; j++) {
+            const m = nodos[j];
+            const dist = Math.hypot(n.x - m.x, n.y - m.y);
+            if (dist < 135) {
+              ctx.beginPath();
+              ctx.moveTo(n.x, n.y);
+              ctx.lineTo(m.x, m.y);
+              ctx.strokeStyle = `rgba(223, 199, 174, ${1 - dist / 135})`;
+              ctx.lineWidth = 0.9;
+              ctx.stroke();
+            }
+          }
+        });
+        requestAnimationFrame(animar);
+      }
+      animar();
+    })();
+
+    // 4. VENTANA 3: ID GOB.PE + CAPTCHA + AUTOCOMPLETAR + BÚSQUEDA CEJ
+    function seleccionarNCA(nivel) {
+      ncaSeleccionado = nivel;
+      [1, 2, 3].forEach(n => document.getElementById('ncaCard' + n).classList.toggle('selected', n === nivel));
+      const textos = {
+        1: 'ID GOB.PE: NCA 1 (Consulta Pública Anonimizada)',
+        2: 'ID GOB.PE: NCA 2 (Credenciales Verificadas)',
+        3: 'ID GOB.PE: NCA 3 (DNIe Firma Digital)'
+      };
+      document.getElementById('badgeNcaHeader').textContent = textos[nivel];
+    }
+
+    function cambiarModoBusqueda(modo) {
+      modoBusqueda = modo;
+      document.getElementById('tabModoCodigo').classList.toggle('active', modo === 'codigo');
+      document.getElementById('tabModoFiltros').classList.toggle('active', modo === 'filtros');
+      document.getElementById('panelModoCodigo').style.display = modo === 'codigo' ? 'block' : 'none';
+      document.getElementById('panelModoFiltros').style.display = modo === 'filtros' ? 'block' : 'none';
+    }
+
+    function generarCaptcha() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      captchaActual = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+      document.getElementById('captchaDisplay').textContent = captchaActual;
+    }
+
+    function autocompletarBusquedaCEJ() {
+      seleccionarNCA(3);
+      document.getElementById('inputCodigoExp').value = '00530-2023-0-2101-JR-CI-03';
+      document.getElementById('fAnio').value = '2023';
+      document.getElementById('fNumero').value = '00530';
+      document.getElementById('fParte').value = 'BBVA';
+      document.getElementById('inputCaptcha').value = captchaActual;
+      document.getElementById('searchErrorMsg').textContent = '';
+    }
+
+    async function ejecutarBusquedaCEJ() {
+      const capIngresado = document.getElementById('inputCaptcha').value.trim().toUpperCase();
+      if (capIngresado !== captchaActual) {
+        document.getElementById('searchErrorMsg').textContent = 'El código CAPTCHA ingresado no coincide. Intente nuevamente o use el botón Autocompletar.';
+        generarCaptcha();
+        return;
+      }
+      document.getElementById('searchErrorMsg').textContent = '';
+
+      const payload = {
+        nca: ncaSeleccionado,
+        modo: modoBusqueda,
+        codigo: document.getElementById('inputCodigoExp').value,
+        distrito: document.getElementById('fDistrito').value,
+        anio: document.getElementById('fAnio').value,
+        numero: document.getElementById('fNumero').value,
+        parte: document.getElementById('fParte').value
+      };
+
+      const res = await fetch('/api/buscar_expediente', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!data.encontrado) {
+        document.getElementById('searchErrorMsg').textContent = 'No se hallaron expedientes con esos criterios. Use "Autocompletar Ingreso Directo".';
+        return;
+      }
+
+      document.getElementById('win4NcaBadge').textContent = `Nivel ID GOB.PE: NCA ${data.nca}`;
+      const tbody = document.getElementById('tablaPartesWin4');
+      tbody.innerHTML = data.partes.map(p => `
+        <tr>
+          <td><strong>${p.rol}</strong></td>
+          <td>${p.nombre}</td>
+          <td>${p.documento}</td>
+          <td>${p.representante}</td>
+          <td>${p.casilla_sinoe}</td>
+        </tr>
+      `).join('');
+
+      irAVentana(4);
+    }
+
+    // 5. VENTANA 5: VISOR EJE, ÍNDICE DIGITAL, CVD, CASILLA, MESA DIGITAL
+    function cambiarSubtabEJE(paneId, btn) {
+      document.querySelectorAll('.eje-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.eje-tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(paneId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    async function cargarListaActuados() {
+      const q = document.getElementById('filtroActuadosInput').value;
+      const hitos = document.getElementById('chkSoloHitos').checked;
+      const res = await fetch(`/api/actuados?q=${encodeURIComponent(q)}&hitos=${hitos}`);
+      const lista = await res.json();
+
+      const cont = document.getElementById('listaActuadosContainer');
+      cont.innerHTML = lista.map(a => `
+        <div class="actuado-row" id="actRow-${a.id}" onclick="seleccionarActuado(${a.id})">
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--tamarind); font-weight:700;">
+            <span>#${String(a.id).padStart(2, '0')} • ${a.fecha}</span>
+            <span>Fojas ${a.fojas}</span>
+          </div>
+          <div style="font-size:0.82rem; font-weight:700; margin-top:2px;">${a.titulo}</div>
+          <div style="font-size:0.74rem; color:var(--texto-secundario);">${a.sumilla}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('tablaIndiceDigital').innerHTML = lista.map(a => `
+        <tr>
+          <td><strong>${a.id}</strong></td>
+          <td>${a.fojas}</td>
+          <td>${a.fecha} ${a.hora}</td>
+          <td>${a.titulo}</td>
+          <td><code>${a.cvd}</code></td>
+          <td><code>${a.hash_corto}...</code></td>
+        </tr>
+      `).join('');
+
+      if (lista.length > 0 && !actuadoActualData) {
+        seleccionarActuado(lista[0].id);
+      }
+    }
+
+    async function seleccionarActuado(id) {
+      document.querySelectorAll('.actuado-row').forEach(r => r.classList.remove('active'));
+      const row = document.getElementById('actRow-' + id);
+      if (row) row.classList.add('active');
+
+      const res = await fetch(`/api/actuado/${id}`);
+      const a = await res.json();
+      actuadoActualData = a;
+
+      document.getElementById('visorFojasBadge').textContent = `Fojas ${a.fojas} (${a.paginas} págs.)`;
+      document.getElementById('visorTituloActuado').textContent = a.titulo;
+      document.getElementById('visorSubtituloActuado').textContent = `${a.instancia} • ${a.sumilla}`;
+      document.getElementById('metaCvd').textContent = a.cvd;
+      document.getElementById('metaFechaHora').textContent = `${a.fecha} ${a.hora} PET`;
+      document.getElementById('metaFirma').textContent = a.estado_firma;
+      document.getElementById('metaSha256').textContent = a.sha256_completo;
+      document.getElementById('iframePdfVisor').src = a.url_pdf;
+      document.getElementById('btnDescargarPdfReal').href = a.url_pdf;
+      document.getElementById('boxResumenActuadoIA').style.display = 'none';
+    }
+
+    function mostrarResumenGlobalIA() {
+      const box = document.getElementById('boxResumenGlobalIA');
+      box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+    function escucharResumenGlobalIA() {
+      document.getElementById('boxResumenGlobalIA').style.display = 'block';
+      leerTextoVoz(document.getElementById('textoResumenGlobalIA').textContent);
+    }
+    function resumirActuadoTexto() {
+      if (!actuadoActualData) return;
+      const box = document.getElementById('boxResumenActuadoIA');
+      box.innerHTML = `<strong>Síntesis IA del Actuado:</strong> ${actuadoActualData.resumen_ia_actuado}`;
+      box.style.display = 'block';
+    }
+    function resumirActuadoAudio() {
+      if (!actuadoActualData) return;
+      resumirActuadoTexto();
+      leerTextoVoz(actuadoActualData.resumen_ia_actuado);
+    }
+
+    function generarRepresentacionImprimible() {
+      if (!actuadoActualData) return;
+      const w = window.open('', '_blank', 'width=760,height=640');
+      w.document.write(`
+        <html><head><title>Representación Imprimible — Expediente Judicial Electrónico</title></head>
+        <body style="font-family:Georgia,serif; padding:34px; color:#2A1612; border:4px double #381B18; margin:20px;">
+          <h2 style="color:#381B18; margin-bottom:4px;">PODER JUDICIAL DEL PERÚ — EXPEDIENTE JUDICIAL ELECTRÓNICO</h2>
+          <p style="font-size:13px; color:#634840;">REPRESENTACIÓN IMPRIMIBLE CON VALOR PROBATORIO SIN FIRMA MANUSCRITA</p>
+          <hr style="border:1px solid #C5A07D; margin:14px 0;">
+          <p><strong>Expediente N°:</strong> 00530-2023-0-2101-JR-CI-03 (3° Juzgado Civil de Puno)</p>
+          <p><strong>Documento:</strong> ${actuadoActualData.titulo}</p>
+          <p><strong>Fojas:</strong> ${actuadoActualData.fojas} | <strong>Sello de Tiempo:</strong> ${actuadoActualData.fecha} ${actuadoActualData.hora}</p>
+          <p><strong>Código de Verificación Digital (CVD):</strong> ${actuadoActualData.cvd}</p>
+          <p><strong>Huella Criptográfica SHA-256:</strong><br><code style="font-size:11px;">${actuadoActualData.sha256_completo}</code></p>
+          <p><strong>Firmante Digital:</strong> ${actuadoActualData.estado_firma}</p>
+          <div style="margin-top:24px; padding:12px; background:#F6EFE7; font-size:12px;">
+            La autenticidad e integridad de este documento electrónico puede ser contrastada en el Validador CVD del Portal CEJ / EJE.
+          </div>
+          <script>window.print();<\/script>
+        </body></html>
+      `);
+      w.document.close();
+    }
+
+    async function validarCodigoCVD() {
+      const cvd = document.getElementById('inputCvdValidar').value;
+      const res = await fetch('/api/validar_cvd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cvd })
+      });
+      const data = await res.json();
+      const box = document.getElementById('resultadoValidadorCvd');
+      if (!data.valido) {
+        box.innerHTML = `<div style="color:#8B1E1E; font-weight:700;">${data.mensaje}</div>`;
+      } else {
+        box.innerHTML = `
+          <div style="background:var(--verde-bg); border:1px solid #B7DEC3; padding:12px; border-radius:8px; font-size:0.82rem;">
+            <strong>DOCUMENTO AUTÉNTICO E ÍNTEGRO</strong><br>
+            <strong>Actuado:</strong> ${data.actuado.titulo}<br>
+            <strong>Sello de Tiempo:</strong> ${data.sello_tiempo}<br>
+            <strong>SHA-256:</strong> <code>${data.sha256}</code>
+          </div>`;
+      }
+    }
+
+    async function cargarCasillaCUD() {
+      const res = await fetch('/api/notificaciones_cud');
+      const lista = await res.json();
+      document.getElementById('tablaCasillaCud').innerHTML = lista.map(n => `
+        <tr>
+          <td><strong>${n.id}</strong></td>
+          <td>${n.resolucion}</td>
+          <td>${n.fecha_deposito}</td>
+          <td>${n.dia_habil_sig}</td>
+          <td>${n.vencimiento_plazo}</td>
+          <td><span class="badge-status">${n.estado}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    async function enviarEscritoMesaDigital() {
+      const sumilla = document.getElementById('inputSumillaMesa').value;
+      const res = await fetch('/api/ingresar_escrito', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sumilla })
+      });
+      const data = await res.json();
+      const c = data.cargo;
+      document.getElementById('resultadoCargoMesa').innerHTML = `
+        <div style="background:var(--verde-bg); border:1px solid #B7DEC3; padding:14px; border-radius:10px; font-size:0.83rem;">
+          <strong>CARGO ELECTRÓNICO GENERADO — ${c.numero_cargo}</strong><br>
+          <strong>Fecha y Hora de Recepción:</strong> ${c.fecha_recepcion}<br>
+          <strong>Cómputo Horario:</strong> ${c.condicion_horaria}<br>
+          <strong>Firma:</strong> ${c.firma_agente}<br>
+          <strong>Hash del Cargo:</strong> <code>${c.hash_cargo}</code>
+        </div>`;
+      cargarAuditoria();
+    }
+
+    async function cargarAuditoria() {
+      const res = await fetch('/api/auditoria');
+      const logs = await res.json();
+      document.getElementById('tablaAuditoriaWin5').innerHTML = logs.map(l => `
+        <tr>
+          <td>${l.timestamp}</td>
+          <td>${l.actor}</td>
+          <td>${l.accion}</td>
+          <td>${l.norma}</td>
+          <td><code>${l.hash_integridad}</code></td>
+        </tr>
+      `).join('');
+    }
+
+    // 6. MODALES DE SERVICIOS (RENIEC 8 DÍGITOS LIBRES CON FOTO IA REALISTA & SUNAT)
+    function abrirModalServicio(tipo) {
+      const modal = document.getElementById('serviceModal');
+      const title = document.getElementById('serviceModalTitle');
+      const body = document.getElementById('serviceModalBody');
+
+      if (tipo === 'guias') {
+        title.textContent = 'Guías de Uso del Expediente Judicial Electrónico';
+        body.innerHTML = `
+          <div class="legal-box-item"><strong>1. Autenticación ID GOB.PE:</strong> Elija NCA 1 para consulta pública anonimizada o NCA 3 (DNIe) para visualizar datos completos con inversión de carga de prueba.</div>
+          <div class="legal-box-item"><strong>2. Búsqueda y Autocompletado:</strong> Use el botón "Autocompletar Ingreso Directo" en la Ventana 3 para cargar los parámetros del Exp. N° 00530-2023-0-2101-JR-CI-03.</div>
+          <div class="legal-box-item"><strong>3. Visor SICOR y Representación Imprimible:</strong> En la Ventana 5 puede abrir los 41 PDFs reales, generar resúmenes en audio/texto y emitir representaciones imprimibles con CVD.</div>`;
+      } else if (tipo === 'faq') {
+        title.textContent = 'Preguntas Frecuentes (FAQ)';
+        body.innerHTML = `
+          <div class="legal-box-item"><strong>¿Qué validez tiene la representación imprimible sin firma manuscrita?</strong><br>Tiene plena validez probatoria al incorporar el Código de Verificación Digital (CVD) contrastable en línea en el repositorio EJE.</div>
+          <div class="legal-box-item"><strong>¿Cómo se computan los plazos en la Casilla Única Electrónica?</strong><br>La notificación electrónica surte efectos legales al segundo día hábil siguiente de su depósito en la casilla.</div>`;
+      } else if (tipo === 'reniec') {
+        title.textContent = 'Consulta de Identidad en Línea — RENIEC (PIDE)';
+        body.innerHTML = `
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Número de DNI (Cualquier 8 dígitos)</label>
+              <input type="text" id="reniecDniInput" maxlength="8" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')" class="form-control" placeholder="Ingrese 8 dígitos..." />
+            </div>
+            <div class="form-group">
+              <label>Género (Retrato IA Biométrico)</label>
+              <select id="reniecGeneroInput" class="form-control">
+                <option value="M">Masculino (Hombre)</option>
+                <option value="F">Femenino (Mujer)</option>
+              </select>
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+              <button class="btn-primary" style="width:100%; justify-content:center;" onclick="consultarReniec()">Consultar DNI</button>
+            </div>
+          </div>
+          <div style="font-size:0.76rem; color:var(--texto-secundario);">Puede ingresar <strong>cualquier número de 8 dígitos</strong> (por ejemplo: 72481930, 45891204, 01285695 o 01287042) para generar la ficha y el retrato fotográfico IA correspondiente.</div>
+          <div id="reniecResultBox"></div>`;
+      } else if (tipo === 'sunat') {
+        title.textContent = 'Consulta RUC / DNI en Línea — SUNAT (PIDE)';
+        body.innerHTML = `
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+            <div class="form-group" style="flex:1; margin-bottom:0;">
+              <label>Número de DNI (8 dígitos) o RUC (11 dígitos)</label>
+              <input type="text" id="sunatRucInput" maxlength="11" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')" class="form-control" placeholder="Ingrese 8 u 11 dígitos..." />
+            </div>
+            <button class="btn-primary" onclick="consultarSunat()">Consultar SUNAT</button>
+          </div>
+          <div style="font-size:0.76rem; color:var(--texto-secundario); margin-top:6px;">Acepta cualquier número de <strong>8 dígitos</strong> (Persona Natural con Negocio) o <strong>11 dígitos</strong> (ej. 20100130204 o 20447892153).</div>
+          <div id="sunatResultBox" style="margin-top:14px;"></div>`;
+      } else if (tipo === 'escritos') {
+        title.textContent = 'Generador Inteligente de Escritos Judiciales';
+        body.innerHTML = `
+          <div class="form-group">
+            <label>Tipo de Escrito Procesal a Generar</label>
+            <select id="tipoEscritoSelect" class="form-control">
+              <option value="COPIAS">Solicita Copias Certificadas Digitales con CVD</option>
+              <option value="DESARCHIVO">Solicita Desarchivo y Devolución de Título Valor (Pagaré)</option>
+              <option value="APERSONAMIENTO">Apersonamiento y Señalamiento de Casilla Única Electrónica</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="generarBorradorEscrito()">Generar Modelo de Escrito</button>
+          <textarea id="textoEscritoGenerado" class="form-control" rows="11" style="margin-top:12px; font-family:Georgia,serif; font-size:0.84rem;"></textarea>`;
+      }
+      modal.classList.add('open');
+    }
+
+    function cerrarModalServicio() {
+      document.getElementById('serviceModal').classList.remove('open');
+    }
+
+    async function consultarReniec() {
+      const dni = document.getElementById('reniecDniInput').value.trim();
+      const genero = document.getElementById('reniecGeneroInput').value;
+      const box = document.getElementById('reniecResultBox');
+
+      if (dni.length !== 8) {
+        box.innerHTML = `<p style="color:#8B1E1E; font-weight:700; margin-top:10px;">Por favor, ingrese exactamente 8 dígitos numéricos.</p>`;
+        return;
+      }
+
+      box.innerHTML = `<p style="color:var(--tamarind); font-weight:600; margin-top:10px;">Consultando padrón biométrico RENIEC y renderizando fotografía IA...</p>`;
+
+      const res = await fetch('/api/reniec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dni, genero })
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        box.innerHTML = `<p style="color:#8B1E1E; font-weight:700; margin-top:10px;">${data.error}</p>`;
+        return;
+      }
+      const p = data.persona;
+      const gReal = p.genero || genero;
+
+      // Respaldo SVG elegante en caso el navegador no tenga conexión externa a randomuser.me
+      const fallbackSvg = encodeURIComponent(
+        gReal === 'F'
+          ? `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="140" viewBox="0 0 120 140"><rect width="120" height="140" fill="#EFE1D8"/><circle cx="60" cy="48" r="24" fill="#381B18"/><circle cx="60" cy="52" r="18" fill="#E8BE9E"/><path d="M25 130c4-28 66-28 70 0" fill="#A46B53"/></svg>`
+          : `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="140" viewBox="0 0 120 140"><rect width="120" height="140" fill="#EFE1D8"/><circle cx="60" cy="50" r="19" fill="#DFAF8B"/><path d="M25 130c4-28 66-28 70 0" fill="#381B18"/></svg>`
+      );
+
+      box.innerHTML = `
+        <div class="reniec-card">
+          <div class="reniec-photo-frame">
+            <img src="${p.foto_url}" alt="Fotografía Biométrica RENIEC de ${p.nombres}" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,${fallbackSvg}';" />
+            <div class="reniec-photo-tag">FOTO IA • RENIEC</div>
+          </div>
+          <div style="font-size:0.83rem; flex:1; min-width:220px;">
+            <span class="badge-status">CONSULTA PIDE-RENIEC VERIFICADA</span>
+            <h4 style="color:var(--tamarind); font-family:var(--font-display); font-size:1.15rem; margin:6px 0;">${p.apellido_paterno} ${p.apellido_materno}, ${p.nombres}</h4>
+            <p><strong>DNI:</strong> ${p.dni} - Dígito Verif.: ${p.digito_ver} | <strong>Sexo:</strong> ${gReal === 'F' ? 'FEMENINO' : 'MASCULINO'}</p>
+            <p><strong>Fecha Nacimiento:</strong> ${p.fecha_nac} | <strong>Estado Civil:</strong> ${p.estado_civil}</p>
+            <p><strong>Ubigeo:</strong> ${p.ubigeo}</p>
+            <p><strong>Domicilio:</strong> ${p.direccion}</p>
+            <p><strong>Restricciones:</strong> ${p.restricciones}</p>
+          </div>
+        </div>`;
+    }
+
+    async function consultarSunat() {
+      const ruc = document.getElementById('sunatRucInput').value.trim();
+      const box = document.getElementById('sunatResultBox');
+
+      if (ruc.length !== 8 && ruc.length !== 11) {
+        box.innerHTML = `<p style="color:#8B1E1E; font-weight:700;">Ingrese un número válido de 8 dígitos (DNI) u 11 dígitos (RUC).</p>`;
+        return;
+      }
+
+      const res = await fetch('/api/sunat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ruc })
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        box.innerHTML = `<p style="color:#8B1E1E; font-weight:700;">${data.error}</p>`;
+        return;
+      }
+      const e = data.empresa;
+      box.innerHTML = `
+        <div class="card" style="background:var(--camel-cream); margin-bottom:0; font-size:0.83rem;">
+          <span class="badge-status">${e.estado} — ${e.condicion}</span>
+          <h4 style="color:var(--tamarind); font-family:var(--font-display); font-size:1.1rem; margin:6px 0;">RUC ${e.ruc} — ${e.razon_social}</h4>
+          <p><strong>Tipo Contribuyente:</strong> ${e.tipo_contribuyente}</p>
+          <p><strong>Actividad Económica:</strong> ${e.actividad_economica}</p>
+          <p><strong>Domicilio Fiscal:</strong> ${e.domicilio_fiscal}</p>
+          <p><strong>Representante Legal:</strong> ${e.representante}</p>
+        </div>`;
+    }
+
+    function generarBorradorEscrito() {
+      const tipo = document.getElementById('tipoEscritoSelect').value;
+      const textos = {
+        COPIAS: `EXPEDIENTE : 00530-2023-0-2101-JR-CI-03\nESPECIALISTA : TAPIA SANCHEZ, MARY ELENIA\nSUMILLA : SOLICITO COPIAS CERTIFICADAS DIGITALES CON CVD\n\nSEÑOR JUEZ DEL TERCER JUZGADO CIVIL DE PUNO:\n\nINTIQA HOTEL E.I.R.L., debidamente representada por su Titular Gerente Francisco Gerardo Aquise Aquise, en los seguidos por Banco BBVA Perú S.A. sobre Obligación de Dar Suma de Dinero, ante usted respetuosamente digo:\n\nQue, solicito se expida Copia Certificada Digital con Código de Verificación Digital (CVD) de la Resolución N° 20 de fecha 24/07/2025 que declara la conclusión definitiva del proceso.\n\nPOR LO EXPUESTO:\nA usted pido acceder a lo solicitado.\n\nPuno, noviembre de 2026.`,
+        DESARCHIVO: `EXPEDIENTE : 00530-2023-0-2101-JR-CI-03\nSUMILLA : SOLICITO DESARCHIVO Y DEVOLUCIÓN DE TÍTULO VALOR ORIGINAL\n\nSEÑOR JUEZ DEL TERCER JUZGADO CIVIL DE PUNO:\n\nHabiéndose dispuesto mediante Resolución N° 20 la conclusión definitiva del proceso por pago íntegro y la devolución de los anexos originales, solicito se cursen los oficios al Archivo Central de Puno para el desglose del Pagaré N° 0011-0229-9600419563-20.\n\nPuno, noviembre de 2026.`,
+        APERSONAMIENTO: `EXPEDIENTE : 00530-2023-0-2101-JR-CI-03\nSUMILLA : APERSONAMIENTO Y SEÑALAMIENTO DE CASILLA ÚNICA ELECTRÓNICA\n\nSEÑOR JUEZ DEL TERCER JUZGADO CIVIL DE PUNO:\n\nCumplo con apersonarme al proceso y señalar como Casilla Única Electrónica el buzón institucional cud@peru.gob.pe para las notificaciones de ley.\n\nPuno, noviembre de 2026.`
+      };
+      document.getElementById('textoEscritoGenerado').value = textos[tipo];
+    }
+
+    // 7. ASISTENTE JURÍDICO FLOTANTE "LEX"
+    function toggleLexChat() {
+      const p = document.getElementById('lexChatPanel');
+      p.style.display = p.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function enviarConsultaLex() {
+      const inp = document.getElementById('lexInput');
+      const q = inp.value.trim();
+      if (!q) return;
+      const box = document.getElementById('lexMessages');
+      box.innerHTML += `<div class="lex-msg-user">${q}</div>`;
+      inp.value = '';
+
+      const ql = q.toLowerCase();
+      let resp = 'El Expediente N° 00530-2023-0-2101-JR-CI-03 tramitado ante el 3° Juzgado Civil de Puno concluyó definitivamente mediante Resolución N° 20 (24/07/2025) por cancelación total de la deuda.';
+      if (ql.includes('parte') || ql.includes('demandante') || ql.includes('demandado')) {
+        resp = 'El ejecutante es Banco BBVA Perú S.A. y los ejecutados son Intiqa Hotel E.I.R.L. (obligado principal) junto a los fiadores solidarios Francisco Gerardo Aquise Aquise y Juliana Judhy Gonzales Aza.';
+      } else if (ql.includes('monto') || ql.includes('cuantia') || ql.includes('pago')) {
+        resp = 'La cuantía inicial demandada fue S/ 128,961.12 por un pagaré Reactiva Perú. Posteriormente pactaron un cronograma por S/ 66,448.36 y finalmente la deuda se extinguió mediante pago total de S/ 45,000.00 acreditado con Constancia de No Adeudo del 16/07/2025.';
+      } else if (ql.includes('sala') || ql.includes('apelacion') || ql.includes('contradiccion')) {
+        resp = 'En primera instancia (Res. N° 07) se declaró fundada la contradicción, pero la 1° Sala Civil de Puno mediante Auto de Vista N° 249-2024 (Res. N° 014-2024) revocó dicha decisión y ordenó llevar adelante la ejecución.';
+      }
+
+      setTimeout(() => {
+        box.innerHTML += `<div class="lex-msg-bot">${resp}</div>`;
+        box.scrollTop = box.scrollHeight;
+      }, 250);
+    }
+
+    // 8. MOTOR DE TRADUCCIÓN COMPLETA DE TODA LA PÁGINA (ESPAÑOL, INGLÉS, QUECHUA, AIMARA)
+    const DICCIONARIO = {
+      es: {
+        skip: 'Saltar al contenido principal', top_brand: 'PLATAFORMA EJE PERÚ — GOBIERNO DIGITAL JUDICIAL',
+        session_lbl: 'Sesión:', acc_btn: 'Accesibilidad',
+        platform_title: 'Sistema de Consulta de Expedientes Judiciales',
+        platform_sub: 'Corte Superior de Justicia de Puno • Expediente Judicial Electrónico (EJE) & Interoperabilidad Estatal',
+        nav_home: 'Inicio', nav_guides: 'Guías', nav_faq: 'Preguntas Frecuentes', nav_sunat: 'Consulta a SUNAT', nav_reniec: 'Consulta a RENIEC', nav_draft: 'Generador de Escritos',
+        step1: '1. Aviso Legal', step2: '2. Portada Animada', step3: '3. ID GOB.PE y Búsqueda CEJ', step4: '4. Resultados y Ficha', step5: '5. Visor Integral EJE (41 Actuados)',
+        w1_badge: 'VENTANA 1 DE 5 — CONFORMIDAD NORMATIVA Y ACADÉMICA', w1_title: 'Aviso Legal, Ético y Académico Obligatorio',
+        w1_p1_t: '1. Finalidad Exclusivamente Académica y de Investigación:',
+        w1_p1_b: 'Esta plataforma constituye un prototipo simulado del Expediente Judicial Electrónico (EJE) desarrollado bajo el marco peruano de Gobierno Digital. No sustituye a los portales oficiales del Poder Judicial del Perú.',
+        w1_p2_t: '2. Tratamiento y Anonimización de Datos:',
+        w1_p2_b: 'Los registros procesales y consultas de interoperabilidad (RENIEC / SUNARP / SUNAT) se presentan con fines demostrativos y control de acceso por niveles de confianza (ID GOB.PE), respetando la protección de datos personales.',
+        w1_p3_t: '3. Carácter Referencial de la Inteligencia Artificial (LEX):',
+        w1_p3_b: 'Los resúmenes automatizados en texto/audio, la generación de escritos y las respuestas del asistente jurídico LEX tienen carácter estrictamente referencial y pedagógico; no constituyen asesoría legal vinculante.',
+        w1_chk: 'He leído y acepto los términos académicos y legales.', w1_btn: 'Aceptar y Continuar a Portada →',
+        hero_badge: 'EXPEDIENTE JUDICIAL ELECTRÓNICO • JUSTICIA DIGITAL',
+        hero_title: 'Sistema de Consulta de Expedientes Judiciales',
+        hero_desc: 'Plataforma integral de trazabilidad procesal, verificación criptográfica SHA-256, firma digital con presunción legal de autoría e interoperabilidad estatal en tiempo real.',
+        hero_cta: 'Búsqueda de Expediente',
+        w3_auth_title: 'Autenticación Federada ID GOB.PE', w3_auth_badge: 'Identidad Digital',
+        w3_auth_desc: 'Seleccione el Nivel de Confianza de Autenticación (NCA) para determinar los privilegios de visualización de datos personales y validez probatoria:',
+        nca1_t: 'NCA 1 — Consulta Pública Anonimizada (Nivel Básico)', nca1_b: 'Acceso ciudadano abierto. Aplica seudonimización automática de nombres y documentos de personas naturales.',
+        nca2_t: 'NCA 2 — Credenciales Verificadas / Clave SOL (Nivel Medio)', nca2_b: 'Autenticación mediante usuario y contraseña validados ante PIDE. Habilita visualización nominativa de partes y casillas SINOE.',
+        nca3_t: 'NCA 3 — DNIe / DNId con Firma Digital (Nivel Alto)', nca3_b: 'Certificado digital raíz RENIEC. Aplica inversión de la carga de la prueba sobre autoría e integridad documental.',
+        w3_role_lbl: 'Rol Procesal / Privilegio de Acceso', w3_search_title: 'Búsqueda de Expedientes (CEJ)',
+        w3_autofill: 'Autocompletar Ingreso Directo', w3_tab_code: 'Por Código de Expediente', w3_tab_filters: 'Por Filtros Institucionales',
+        w3_code_lbl: 'Código Único de Expediente (Formato Estándar PJ: XXXXX-XXXX-X-XXXX-XX-XX-XX)',
+        f_dist: 'Distrito Judicial', f_inst: 'Instancia', f_esp: 'Especialidad', f_year: 'Año', f_num: 'N° de Expediente', f_party: 'Apellidos / Razón Social',
+        w3_cap_lbl: 'Verificación de Seguridad (CAPTCHA Dinámico — Audio Disponible)', w3_submit: 'Consultar Expediente en Base EJE →',
+        w4_title: 'Resultados Coincidentes — Ficha Resumen del Expediente',
+        th_exp: 'N° de Expediente', th_org: 'Órgano Jurisdiccional', th_judge: 'Juez / Especialista', th_mat: 'Materia y Proceso', th_state: 'Estado Actual', th_act: 'Acción',
+        w4_enter: 'Ingresar al Expediente Electrónico →', w4_parties_title: 'Partes Procesales (Control de Privacidad según Nivel de Confianza ID GOB.PE)',
+        th_role: 'Rol Procesal', th_name: 'Apellidos y Nombres / Razón Social', th_doc: 'Documento de Identidad / RUC', th_rep: 'Representante / Defensa Técnica', th_box: 'Casilla SINOE',
+        w5_title: 'Visor Integral del Expediente Judicial Electrónico (EJE)',
+        btn_ai_case_txt: 'Resumen IA del Caso (Texto)', btn_ai_case_aud: 'Escuchar Resumen del Caso (Audio)', btn_stop_aud: 'Detener Audio',
+        ai_exec_lbl: 'Síntesis Ejecutiva Generada por LEX IA:',
+        tab_visor: 'Visor de Actuados & Representación Imprimible', tab_index: 'Índice Digital Firmado (IOFE)',
+        tab_cvd: 'Validador CVD & Copia Certificada Digital', tab_cud: 'Casilla Única Electrónica (cud@peru.gob.pe)',
+        tab_mesa: 'Mesa Digital Perú', tab_inter: 'Audiencia Digital & Datos Abiertos',
+        chk_milestones: 'Mostrar solo hitos procesales clave', btn_act_txt: 'Resumir Actuado (Texto)', btn_act_aud: 'Resumir Actuado (Audio)',
+        btn_rep_imp: 'Representación Imprimible', btn_open_pdf: 'Abrir PDF ↗',
+        idx_title: 'Índice Digital Firmado de Cierre (IOFE)', idx_badge: 'ÍNDICE CERRADO Y FIRMADO DIGITALMENTE',
+        idx_desc: 'Relación cronológica inalterable de los 41 documentos electrónicos incorporados al expediente, con foliado correlativo, sello de tiempo y huella criptográfica SHA-256 verificable.',
+        cvd_title: 'Validador de Código de Verificación Digital (CVD)',
+        cvd_desc: 'Ingrese el Código de Verificación Digital (CVD) consignado en la representación imprimible (ejemplo: CVD-2025-00530-041) para contrastar su autenticidad contra el repositorio EJE:',
+        cvd_btn: 'Verificar CVD', cert_title: 'Emisión de Copia Certificada Digital',
+        cert_desc: 'Genera una constancia de copia certificada digital con código CVD, enlace de verificación y sello electrónico del Especialista Legal.',
+        cert_btn: 'Generar Copia Certificada Digital del Actuado Actual',
+        cud_title: 'Casilla Única Electrónica (cud@peru.gob.pe)', cud_badge: 'Cómputo Automático al Día Hábil Siguiente',
+        mesa_title: 'Mesa Digital Perú — Ingreso de Escritos 24/7', mesa_badge: 'Agente Automatizado Activo',
+        mesa_lbl: 'Sumilla del Escrito a Presentar', mesa_btn: 'Presentar Escrito y Emitir Cargo Firmado',
+        aud_title: 'Sala de Audiencia Digital', aud_desc: 'Registro de Vista de la Causa (Res. N° 011-2024): 1° Sala Civil de Puno — Fecha: 16/07/2024 a las 10:35 a.m. (Sala Virtual). Grabación audiovisual indexada en repositorio EJE con hash de integridad.',
+        open_title: 'Interoperabilidad Estatal & Datos Abiertos', open_desc: 'Conexión activa mediante Plataforma Nacional de Interoperabilidad (PIDE): RENIEC (identidad), SUNARP (vigencias de poder y levantamiento de embargos) y Banco de la Nación / Págalo.pe (aranceles judiciales).',
+        open_btn: 'Exportar Dataset JSON (Datos Abiertos)', log_title: 'Bitácora de Auditoría y Trazabilidad Inmutable',
+        lex_sub: 'Consultas del Exp. 00530-2023 & Gobierno Digital',
+        lex_welcome: 'Hola, soy LEX. Puedo responder consultas sobre las partes, resoluciones, el Auto de Vista N° 249-2024, el acuerdo de pago o el archivo definitivo (Res. N° 20). ¿Qué deseas consultar?',
+        lex_send: 'Enviar', acc_title: 'Accesibilidad (WCAG 2.2 AA)'
+      },
+      en: {
+        skip: 'Skip to main content', top_brand: 'EJE PERU PLATFORM — DIGITAL JUDICIAL GOVERNMENT',
+        session_lbl: 'Session:', acc_btn: 'Accessibility',
+        platform_title: 'Judicial Case Inquiry System',
+        platform_sub: 'Superior Court of Justice of Puno • Electronic Judicial File (EJE) & State Interoperability',
+        nav_home: 'Home', nav_guides: 'Guides', nav_faq: 'FAQ', nav_sunat: 'SUNAT Query', nav_reniec: 'RENIEC Query', nav_draft: 'Legal Brief Generator',
+        step1: '1. Legal Notice', step2: '2. Animated Cover', step3: '3. ID GOB.PE & CEJ Search', step4: '4. Results & Summary', step5: '5. Full EJE Viewer (41 Filings)',
+        w1_badge: 'WINDOW 1 OF 5 — REGULATORY AND ACADEMIC COMPLIANCE', w1_title: 'Mandatory Legal, Ethical and Academic Notice',
+        w1_p1_t: '1. Exclusively Academic and Research Purpose:',
+        w1_p1_b: 'This platform is a simulated prototype of the Electronic Judicial File (EJE) developed under Peru’s Digital Government framework. It does not replace official Judiciary portals.',
+        w1_p2_t: '2. Data Processing and Anonymization:',
+        w1_p2_b: 'Procedural records and interoperability queries (RENIEC / SUNARP / SUNAT) are presented for demonstration and trust-level access control (ID GOB.PE), respecting personal data protection.',
+        w1_p3_t: '3. Referential Nature of Artificial Intelligence (LEX):',
+        w1_p3_b: 'Automated text/audio summaries, legal brief generation, and answers from the LEX assistant are strictly referential and pedagogical; they do not constitute binding legal advice.',
+        w1_chk: 'I have read and accept the academic and legal terms.', w1_btn: 'Accept and Continue to Home →',
+        hero_badge: 'ELECTRONIC JUDICIAL FILE • DIGITAL JUSTICE',
+        hero_title: 'Judicial Case Inquiry System',
+        hero_desc: 'Comprehensive procedural traceability platform, SHA-256 cryptographic verification, digital signature with legal presumption of authorship, and real-time state interoperability.',
+        hero_cta: 'Case File Search',
+        w3_auth_title: 'ID GOB.PE Federated Authentication', w3_auth_badge: 'Digital Identity',
+        w3_auth_desc: 'Select the Authentication Assurance Level (NCA) to determine personal data viewing privileges and evidentiary validity:',
+        nca1_t: 'NCA 1 — Anonymized Public Inquiry (Basic Level)', nca1_b: 'Open citizen access. Applies automatic pseudonymization of names and ID documents of natural persons.',
+        nca2_t: 'NCA 2 — Verified Credentials / SOL Key (Medium Level)', nca2_b: 'Authentication via credentials validated with PIDE. Enables nominative display of parties and SINOE electronic mailboxes.',
+        nca3_t: 'NCA 3 — Electronic ID (DNIe) with Digital Signature (High Level)', nca3_b: 'RENIEC root digital certificate. Applies burden-of-proof reversal regarding document authorship and integrity.',
+        w3_role_lbl: 'Procedural Role / Access Privilege', w3_search_title: 'Judicial File Search (CEJ)',
+        w3_autofill: 'Autofill Direct Entry', w3_tab_code: 'By Case File Code', w3_tab_filters: 'By Institutional Filters',
+        w3_code_lbl: 'Unique Case File Code (Standard Format: XXXXX-XXXX-X-XXXX-XX-XX-XX)',
+        f_dist: 'Judicial District', f_inst: 'Court Instance', f_esp: 'Specialty', f_year: 'Year', f_num: 'Case Number', f_party: 'Last Name / Company Name',
+        w3_cap_lbl: 'Security Verification (Dynamic CAPTCHA — Audio Available)', w3_submit: 'Search Case File in EJE Database →',
+        w4_title: 'Matching Results — Case File Summary Sheet',
+        th_exp: 'Case Number', th_org: 'Jurisdictional Body', th_judge: 'Judge / Legal Clerk', th_mat: 'Subject & Procedure', th_state: 'Current Status', th_act: 'Action',
+        w4_enter: 'Enter Electronic Case File →', w4_parties_title: 'Procedural Parties (Privacy Control by ID GOB.PE Assurance Level)',
+        th_role: 'Procedural Role', th_name: 'Full Name / Corporate Name', th_doc: 'ID Document / Tax ID', th_rep: 'Representative / Legal Counsel', th_box: 'SINOE Mailbox',
+        w5_title: 'Comprehensive Electronic Judicial File Viewer (EJE)',
+        btn_ai_case_txt: 'AI Case Summary (Text)', btn_ai_case_aud: 'Listen to Case Summary (Audio)', btn_stop_aud: 'Stop Audio',
+        ai_exec_lbl: 'Executive Synthesis Generated by LEX AI:',
+        tab_visor: 'Filings Viewer & Printable Representation', tab_index: 'Signed Digital Index (IOFE)',
+        tab_cvd: 'CVD Validator & Digital Certified Copy', tab_cud: 'Single Electronic Mailbox (cud@peru.gob.pe)',
+        tab_mesa: 'Peru Digital Filing Desk', tab_inter: 'Digital Hearing & Open Data',
+        chk_milestones: 'Show key procedural milestones only', btn_act_txt: 'Summarize Filing (Text)', btn_act_aud: 'Summarize Filing (Audio)',
+        btn_rep_imp: 'Printable Representation', btn_open_pdf: 'Open PDF ↗',
+        idx_title: 'Signed Closing Digital Index (IOFE)', idx_badge: 'CLOSED AND DIGITALLY SIGNED INDEX',
+        idx_desc: 'Unalterable chronological list of the 41 electronic documents incorporated into the case file, with sequential foliation, timestamp, and verifiable SHA-256 hash.',
+        cvd_title: 'Digital Verification Code (CVD) Validator',
+        cvd_desc: 'Enter the Digital Verification Code (CVD) shown on the printable representation (e.g., CVD-2025-00530-041) to verify its authenticity against the EJE repository:',
+        cvd_btn: 'Verify CVD', cert_title: 'Digital Certified Copy Issuance',
+        cert_desc: 'Generates a digital certified copy certificate with CVD code, verification link, and electronic seal of the Legal Clerk.',
+        cert_btn: 'Generate Digital Certified Copy of Current Filing',
+        cud_title: 'Single Electronic Mailbox (cud@peru.gob.pe)', cud_badge: 'Automatic Calculation to Next Business Day',
+        mesa_title: 'Peru Digital Desk — 24/7 Electronic Filing', mesa_badge: 'Automated Agent Active',
+        mesa_lbl: 'Summary of Legal Brief to File', mesa_btn: 'Submit Filing and Issue Signed Receipt',
+        aud_title: 'Digital Hearing Room', aud_desc: 'Hearing Record (Res. N° 011-2024): 1st Civil Chamber of Puno — Date: 16/07/2024 at 10:35 a.m. (Virtual Room). Audiovisual recording indexed in EJE repository with integrity hash.',
+        open_title: 'State Interoperability & Open Data', open_desc: 'Active connection via National Interoperability Platform (PIDE): RENIEC (identity), SUNARP (powers of attorney & lien lifting), and Banco de la Nación / Págalo.pe (court fees).',
+        open_btn: 'Export JSON Dataset (Open Data)', log_title: 'Immutable Audit and Traceability Log',
+        lex_sub: 'Inquiries on Case 00530-2023 & Digital Gov',
+        lex_welcome: 'Hello, I am LEX. I can answer questions about the parties, court rulings, Appellate Order N° 249-2024, the settlement agreement, or the final archiving order (Res. N° 20). What would you like to ask?',
+        lex_send: 'Send', acc_title: 'Accessibility (WCAG 2.2 AA)'
+      },
+      qu: {
+        skip: 'Hatun raphiman phaway', top_brand: 'EJE PERÚ LLIKA — ANTAÑIQIQ TARIPAY KAMACHIY',
+        session_lbl: 'Tiyay pacha:', acc_btn: 'Yanapaykuna',
+        platform_title: 'Taripay Qillqakuna Maskhana Llika',
+        platform_sub: 'Puno Hatun Taripay Wasi • Antañiqiq Taripay Qillqa (EJE) & Estado Tinkuchiy',
+        nav_home: 'Qallariy', nav_guides: 'Yanapaq Qillqakuna', nav_faq: 'Sapa Kuti Tapukuykuna', nav_sunat: 'SUNAT Tapukuy', nav_reniec: 'RENIEC Tapukuy', nav_draft: 'Qillqa Ruraq',
+        step1: '1. Kamachiy Willakuy', step2: '2. Qallariy Raphi', step3: '3. ID GOB.PE & CEJ Maskhay', step4: '4. Tarisqa Qillqakuna', step5: '5. EJE Qillqa Qhawana (41)',
+        w1_badge: '1 KAQ QHAWANA — KAMACHIY WAN YACHAY WILLAKUY', w1_title: 'Kamachiy, Allin Ruway Wan Yachay Willakuy',
+        w1_p1_t: '1. Yachaypaq Wan Maskhaypaqlla:',
+        w1_p1_b: 'Kay llikaqa Antañiqiq Taripay Qillqa (EJE) yachaypaq rurasqam. Manam Perú Taripay Wasipa chiqaq llikanta rantinichu.',
+        w1_p2_t: '2. Willakuykuna Pakay Wan Waqaychay:',
+        w1_p2_b: 'Taripay qillqakunaqa (RENIEC / SUNARP / SUNAT) yachachinapaqllam rikuchikun, ID GOB.PE kamachiywan runakunapa sutinta waqaychaspa.',
+        w1_p3_t: '3. Yachaysapa Antañiqiq (LEX) Yanapaynin:',
+        w1_p3_b: 'LEX IA nisqapa uchuychasqa qillqankuna, uyarinapaq willakuyninkunaqa yanapanapaqllam; manam kamachiy yuyaychaychu.',
+        w1_chk: 'Ñawirirqaniñam, kamachiykunatapas chaskinim.', w1_btn: 'Chaskiy Hinaspataq Qallariyman Riy →',
+        hero_badge: 'ANTAÑIQIQ TARIPAY QILLQA • DIGITAL JUSTICIA',
+        hero_title: 'Taripay Qillqakuna Maskhana Llika',
+        hero_desc: 'Taripay puriy qatipay llika, SHA-256 chiqaqchaywan, antañiqiq firmawan hinallataq Estado llikakunawan tinkusqa.',
+        hero_cta: 'Taripay Qillqata Maskhay',
+        w3_auth_title: 'ID GOB.PE Kikinchakuy', w3_auth_badge: 'Antañiqiq Kikin',
+        w3_auth_desc: 'Akllay ima nivel de confianza (NCA) nisqawanchus runakunapa willakuyninta qhawayta munanki:',
+        nca1_t: 'NCA 1 — Llaqtapaq Pakasqa Tapukuy', nca1_b: 'Llapa runapaq kichasqa. Runakunapa sutinta DNI yupayninta pakaspa rikuchin.',
+        nca2_t: 'NCA 2 — Chiqaqchasqa Suti Wan Clave SOL', nca2_b: 'PIDEwan chiqaqchasqa yaykuy. Mañakuqkunapa sutinta SINOE chaskikunata rikuchin.',
+        nca3_t: 'NCA 3 — DNIe Antañiqiq Firmawan', nca3_b: 'RENIEC certificado digitalwan. Qillqapa chiqaq kayninta hunt’asqata rikuchin.',
+        w3_role_lbl: 'Taripay Ruraqpa Nivel', w3_search_title: 'Taripay Qillqakuna Maskhay (CEJ)',
+        w3_autofill: 'Kikinmanta Hunt’achiy', w3_tab_code: 'Expediente Yupaywan', w3_tab_filters: 'Wasi Akllanakunawan',
+        w3_code_lbl: 'Expediente Yupay (XXXXX-XXXX-X-XXXX-XX-XX-XX)',
+        f_dist: 'Taripay Suyu', f_inst: 'Taripay Wasi', f_esp: 'Yachay Suyu', f_year: 'Wata', f_num: 'Expediente Yupay', f_party: 'Suti / Hatun Wasi',
+        w3_cap_lbl: 'Waqaychay Chiqaqchay (CAPTCHA — Uyarina Kanmi)', w3_submit: 'EJE Llikapi Maskhay →',
+        w4_title: 'Tarisqa Qillqakuna — Expediente Uchuy Willakuy',
+        th_exp: 'Expediente Yupay', th_org: 'Taripay Wasi', th_judge: 'Juez / Yanapaq', th_mat: 'Imamanta Taripay', th_state: 'Kunan Kaynin', th_act: 'Ruway',
+        w4_enter: 'Antañiqiq Expedienteman Yaykuy →', w4_parties_title: 'Taripaypi Kaqkuna (ID GOB.PE Waqaychaywan)',
+        th_role: 'Imayna Kaynin', th_name: 'Sutikuna / Hatun Wasi', th_doc: 'DNI / RUC Yupay', th_rep: 'Abogado / Rantin', th_box: 'SINOE Chaskina',
+        w5_title: 'Antañiqiq Taripay Qillqa Qhawana (EJE)',
+        btn_ai_case_txt: 'IA Uchuychasqa (Qillqa)', btn_ai_case_aud: 'IA Uchuychasqa (Uyariy)', btn_stop_aud: 'Uyarichiyta Sayachiy',
+        ai_exec_lbl: 'LEX IA Nisqapa Uchuychasqan:',
+        tab_visor: 'Qillqakuna Qhawana & Imprimina', tab_index: 'Firmasqa Índice Digital (IOFE)',
+        tab_cvd: 'CVD Chiqaqchaq & Copia Certificada', tab_cud: 'Sapaq Antañiqiq Chaskina (cud@peru.gob.pe)',
+        tab_mesa: 'Mesa Digital Perú', tab_inter: 'Antañiqiq Uyarinakuy & Kichasqa Willakuy',
+        chk_milestones: 'Hatun ruwaykunallata rikuchiy', btn_act_txt: 'Kay Qillqata Uchuychay (Qillqa)', btn_act_aud: 'Kay Qillqata Uchuychay (Uyariy)',
+        btn_rep_imp: 'Imprimina Qillqa', btn_open_pdf: 'PDF Kichay ↗',
+        idx_title: 'Wichq’asqa Índice Digital Firmado (IOFE)', idx_badge: 'WICHQ’ASQA WAN FIRMASQA ÍNDICE',
+        idx_desc: '41 antañiqiq qillqakunapa qati-qatilla yupaynin, sello de tiempo hinallataq SHA-256 chiqaqchaywan.',
+        cvd_title: 'Código de Verificación Digital (CVD) Chiqaqchaq',
+        cvd_desc: 'CVD yupayta qillqay (kayhina: CVD-2025-00530-041) EJE llikapi chiqaq kayninta qhawanapaq:',
+        cvd_btn: 'CVD Chiqaqchay', cert_title: 'Copia Certificada Digital Hurquy',
+        cert_desc: 'Copia certificada digitalta CVD yupaywan Especialista Legalpa sellonwan ruran.',
+        cert_btn: 'Kunan Qillqamanta Copia Certificada Ruray',
+        cud_title: 'Sapaq Antañiqiq Chaskina (cud@peru.gob.pe)', cud_badge: 'Paqarin Llamk’ana P’unchawmanta Yupakun',
+        mesa_title: 'Mesa Digital Perú — Qillqakuna Yaykuchina 24/7', mesa_badge: 'Kikinmanta Chaskiq Llamk’achkan',
+        mesa_lbl: 'Yaykuchina Qillqapa Sumillan', mesa_btn: 'Qillqata Apachiy Wan Cargo Chaskiy',
+        aud_title: 'Antañiqiq Uyarinakuy Wasi', aud_desc: 'Vista de la Causa (Res. N° 011-2024): 1° Sala Civil Puno — 16/07/2024 (10:35 a.m.). Video waqaychasqa EJE llikapi.',
+        open_title: 'Estado Tinkuchiy & Kichasqa Willakuykuna', open_desc: 'PIDEwan tinkusqa: RENIEC, SUNARP hinallataq Banco de la Nación / Págalo.pe.',
+        open_btn: 'JSON Willakuyta Hurquy', log_title: 'Mana Tikrana Auditoría Qillqa',
+        lex_sub: 'Exp. 00530-2023 Tapukuykuna',
+        lex_welcome: 'Allinllachu, ñuqaqa LEX kani. Tapuwankimanmi demandantemanta, resolucionkunamanta, Auto de Vista N° 249-2024 nisqamanta utaq archivo definitivomanta (Res. N° 20). ¿Imatam tapukuyta munanki?',
+        lex_send: 'Apachiy', acc_title: 'Yanapaykuna (WCAG 2.2 AA)'
+      },
+      ay: {
+        skip: 'Jach’a laphiru thakhinchaña', top_brand: 'EJE PERÚ LLIKA — ANTAÑIQIQ TARIPAWI KAMACHI',
+        session_lbl: 'Pacha:', acc_btn: 'Yanapt’awi',
+        platform_title: 'Taripawi Qillqanak Thaqhaña Llika',
+        platform_sub: 'Puno Jach’a Taripawi Uta • Antañiqiq Taripawi Qillqa (EJE) & Estado Mayacht’awi',
+        nav_home: 'Qallta', nav_guides: 'Irpiri Qillqanaka', nav_faq: 'Sapa kuti Jiskt’awinaka', nav_sunat: 'SUNAT Jiskt’awi', nav_reniec: 'RENIEC Jiskt’awi', nav_draft: 'Qillqa Luriri',
+        step1: '1. Kamachi Yatiyawi', step2: '2. Qallta Laphi', step3: '3. ID GOB.PE & CEJ Thaqhaña', step4: '4. Jikxatata Qillqanaka', step5: '5. EJE Qillqa Uñakipaña (41)',
+        w1_badge: '1 UÑAKIPAWI — KAMACHI UKHAMARAKI YATIQAWI YATIYAWI', w1_title: 'Kamachi, Aski Lurawi Ukhamaraki Yatiqawi Yatiyawi',
+        w1_p1_t: '1. Yatiqañataki Ukhamaraki Thaqhañataki:',
+        w1_p1_b: 'Aka llikaxa Antañiqiq Taripawi Qillqa (EJE) yatiqañataki lurt’atawa. Janiwa Perú Taripawi Utana chiqa llikaparu lantintkiti.',
+        w1_p2_t: '2. Yatiyawinaka Imantawi Ukhamaraki Jark’awi:',
+        w1_p2_b: 'Taripawi qillqanakaxa (RENIEC / SUNARP / SUNAT) uñacht’ayañatakiwa, ID GOB.PE kamachimpixa jaqinakana sutinakapa jark’asi.',
+        w1_p3_t: '3. Yatiñani Antañiqiq (LEX) Yanapt’apa:',
+        w1_p3_b: 'LEX IA jisk’aptayata qillqanakapa, ist’añataki yatiyawinakapaxa yanapt’añatakiwa; janiwa kamachi iwxa tukuyatäkiti.',
+        w1_chk: 'Ullxt’xtwa, kamachinakampiru iyawsaraktwa.', w1_btn: 'Iyawsaña Ukhamaraki Qalltaru Saraña →',
+        hero_badge: 'ANTAÑIQIQ TARIPAWI QILLQA • DIGITAL JUSTICIA',
+        hero_title: 'Taripawi Qillqanak Thaqhaña Llika',
+        hero_desc: 'Taripawi sarawi uñakipaña llika, SHA-256 chiqanchawimpi, antañiqiq firmampi ukhamaraki Estado llikanakampi mayacht’ata.',
+        hero_cta: 'Taripawi Qillqa Thaqhaña',
+        w3_auth_title: 'ID GOB.PE Uñt’ayasiwi', w3_auth_badge: 'Antañiqiq Uñt’awi',
+        w3_auth_desc: 'Ajllma kawkïri nivel de confianza (NCA) ukampisa jaqinakana yatiyawinakapa uñjaña muntaxa:',
+        nca1_t: 'NCA 1 — Markachirinakataki Imantata Jiskt’awi', nca1_b: 'Taqi jaqinakataki jist’arata. Jaqinakana sutinakapa DNI jakhunakapa imantasa uñacht’ayi.',
+        nca2_t: 'NCA 2 — Chiqanchata Suti Ukhamaraki Clave SOL', nca2_b: 'PIDE ukampi chiqanchata mantaña. Mayirinakana sutinakapa SINOE chaskirinaka uñacht’ayi.',
+        nca3_t: 'NCA 3 — DNIe Antañiqiq Firmampi', nca3_b: 'RENIEC certificado digital ukampi. Qillqana chiqapätapa phuqhatpacha uñacht’ayi.',
+        w3_role_lbl: 'Taripawi Luririna Nivel', w3_search_title: 'Taripawi Qillqanak Thaqhaña (CEJ)',
+        w3_autofill: 'Sapaki Phuqhachaña', w3_tab_code: 'Expediente Jakhumpi', w3_tab_filters: 'Uta Ajllawinakampi',
+        w3_code_lbl: 'Expediente Jakhu (XXXXX-XXXX-X-XXXX-XX-XX-XX)',
+        f_dist: 'Taripawi Suyu', f_inst: 'Taripawi Uta', f_esp: 'Yatiña Suyu', f_year: 'Mara', f_num: 'Expediente Jakhu', f_party: 'Suti / Jach’a Uta',
+        w3_cap_lbl: 'Jark’awi Chiqanchawi (CAPTCHA — Ist’añataki Utjiwa)', w3_submit: 'EJE Llikana Thaqhaña →',
+        w4_title: 'Jikxatata Qillqanaka — Expediente Jisk’a Yatiyawi',
+        th_exp: 'Expediente Jakhu', th_org: 'Taripawi Uta', th_judge: 'Juez / Yanapiri', th_mat: 'Kunatsa Taripawi', th_state: 'Jichha Utjawipa', th_act: 'Lurawi',
+        w4_enter: 'Antañiqiq Expedienteru Mantaña →', w4_parties_title: 'Taripawina Utjirinaka (ID GOB.PE Jark’awimpi)',
+        th_role: 'Kunjam Utjawipa', th_name: 'Sutinaka / Jach’a Uta', th_doc: 'DNI / RUC Jakhu', th_rep: 'Abogado / Lanti', th_box: 'SINOE Chaskina',
+        w5_title: 'Antañiqiq Taripawi Qillqa Uñakipaña (EJE)',
+        btn_ai_case_txt: 'IA Jisk’aptayata (Qillqa)', btn_ai_case_aud: 'IA Jisk’aptayata (Ist’aña)', btn_stop_aud: 'Ist’awi Sayt’ayaña',
+        ai_exec_lbl: 'LEX IA Jisk’aptayata Yatiyawi:',
+        tab_visor: 'Qillqanak Uñakipaña & Imprimiña', tab_index: 'Firmata Índice Digital (IOFE)',
+        tab_cvd: 'CVD Chiqanchiri & Copia Certificada', tab_cud: 'Sapa Antañiqiq Chaskina (cud@peru.gob.pe)',
+        tab_mesa: 'Mesa Digital Perú', tab_inter: 'Antañiqiq Ist’asiwi & Jist’arata Yatiyawi',
+        chk_milestones: 'Jach’a lurawinakaki uñacht’ayaña', btn_act_txt: 'Aka Qillqa Jisk’aptayaña (Qillqa)', btn_act_aud: 'Aka Qillqa Jisk’aptayaña (Ist’aña)',
+        btn_rep_imp: 'Imprimiña Qillqa', btn_open_pdf: 'PDF Jist’araña ↗',
+        idx_title: 'Jist’antata Índice Digital Firmado (IOFE)', idx_badge: 'JIST’ANTATA UKHAMARAKI FIRMATA ÍNDICE',
+        idx_desc: '41 antañiqiq qillqanakana siqichata jakhuwipa, sello de tiempo ukhamaraki SHA-256 chiqanchawimpi.',
+        cvd_title: 'Código de Verificación Digital (CVD) Chiqanchiri',
+        cvd_desc: 'CVD jakhu qillqma (ukhamawa: CVD-2025-00530-041) EJE llikana chiqapätapa uñjañataki:',
+        cvd_btn: 'CVD Chiqanchaña', cert_title: 'Copia Certificada Digital Apsuña',
+        cert_desc: 'Copia certificada digital CVD jakhumpi Especialista Legalana sellompixa luri.',
+        cert_btn: 'Jichha Qillqata Copia Certificada Luraña',
+        cud_title: 'Sapa Antañiqiq Chaskina (cud@peru.gob.pe)', cud_badge: 'Qharüru Irnaqawi Uruta Jakthapisi',
+        mesa_title: 'Mesa Digital Perú — Qillqanak Mantayaña 24/7', mesa_badge: 'Sapaki Chaskiri Irnaqaski',
+        mesa_lbl: 'Mantayaña Qillqana Sumillapa', mesa_btn: 'Qillqa Apayaña Ukhamaraki Cargo Katuqaña',
+        aud_title: 'Antañiqiq Ist’asiwi Uta', aud_desc: 'Vista de la Causa (Res. N° 011-2024): 1° Sala Civil Puno — 16/07/2024 (10:35 a.m.). Video imata EJE llikana.',
+        open_title: 'Estado Mayacht’awi & Jist’arata Yatiyawinaka', open_desc: 'PIDE ukampi mayacht’ata: RENIEC, SUNARP ukhamaraki Banco de la Nación / Págalo.pe.',
+        open_btn: 'JSON Yatiyawi Apsuña', log_title: 'Jani Mayjt’aykaña Auditoría Qillqa',
+        lex_sub: 'Exp. 00530-2023 Jiskt’awinaka',
+        lex_welcome: 'Kamisaki, nayaxa LEX satätwa. Jiskt’itasmawa demandanteta, resolucionanakata, Auto de Vista N° 249-2024 ukatxa archivo definitivota (Res. N° 20). ¿Kunsa jiskt’asiña muntaxa?',
+        lex_send: 'Apayaña', acc_title: 'Yanapt’awi (WCAG 2.2 AA)'
+      }
+    };
+
+    function cambiarIdioma(lang) {
+      idiomaActual = lang;
+      const dict = DICCIONARIO[lang] || DICCIONARIO.es;
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+    }
+
+    // 9. MOTOR DE ACCESIBILIDAD WCAG 2.2 AA Y LECTURA EN VOZ ALTA
+    function toggleAccDrawer() {
+      const d = document.getElementById('accDrawer');
+      d.style.display = d.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function togglePerfilAcc(perfil) {
+      const chip = document.getElementById('prof-' + perfil);
+      chip.classList.toggle('active');
+      const activo = chip.classList.contains('active');
+      if (perfil === 'lowvision') { ajustarTexto(activo ? 20 : -20); document.body.classList.toggle('acc-high-contrast', activo); }
+      if (perfil === 'assisted') { document.getElementById('chkHoverRead').checked = activo; if (activo) leerTextoVoz('Lectura asistida activada.'); }
+      if (perfil === 'colorblind') { document.body.classList.toggle('acc-colorblind', activo); }
+      if (perfil === 'dyslexia') { document.body.classList.toggle('acc-dyslexia', activo); }
+      if (perfil === 'adhd') { toggleGuiaLectura(activo); }
+      if (perfil === 'motor') { document.body.classList.toggle('acc-focus-strong', activo); }
+      if (perfil === 'light') { document.body.classList.toggle('acc-light-sensitivity', activo); }
+    }
+
+    function ajustarTexto(delta) {
+      fontScale = Math.min(200, Math.max(80, fontScale + delta));
+      document.documentElement.style.fontSize = fontScale + '%';
+      document.getElementById('lblFontScale').textContent = fontScale + '%';
+    }
+
+    function cambiarTipografia(tipo) {
+      document.body.classList.remove('acc-legible', 'acc-dyslexia');
+      if (tipo === 'legible') document.body.classList.add('acc-legible');
+      if (tipo === 'dislexia') document.body.classList.add('acc-dyslexia');
+    }
+
+    function toggleGuiaLectura(forzar) {
+      const bar = document.getElementById('reading-guide-bar');
+      const mostrar = typeof forzar === 'boolean' ? forzar : (bar.style.display !== 'block');
+      bar.style.display = mostrar ? 'block' : 'none';
+    }
+    window.addEventListener('mousemove', e => {
+      const bar = document.getElementById('reading-guide-bar');
+      if (bar.style.display === 'block') bar.style.top = (e.clientY - 17) + 'px';
+    });
+
+    function leerTextoVoz(texto) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(texto);
+      u.lang = idiomaActual === 'en' ? 'en-US' : 'es-PE';
+      u.rate = voiceRate;
+      window.speechSynthesis.speak(u);
+    }
+    function leerPaginaCompleta() { leerTextoVoz(document.getElementById('main-content').innerText.slice(0, 2500)); }
+    function leerSeleccion() { const sel = window.getSelection().toString(); if (sel) leerTextoVoz(sel); }
+    function pausarReanudarVoz() { window.speechSynthesis.paused ? window.speechSynthesis.resume() : window.speechSynthesis.pause(); }
+    function detenerVoz() { window.speechSynthesis.cancel(); }
+    function cambiarVelocidadVoz(val) { voiceRate = parseFloat(val); document.getElementById('lblVoiceRate').textContent = '×' + voiceRate.toFixed(1); }
+
+    document.addEventListener('mouseover', e => {
+      if (document.getElementById('chkHoverRead').checked && e.target.innerText && e.target.children.length === 0) {
+        leerTextoVoz(e.target.innerText);
+      }
+    });
+
+    function activarControlPorVoz() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) { alert('Su navegador soporta atajos de teclado (Alt+1, Alt+2, Alt+3).'); return; }
+      const rec = new SpeechRec();
+      rec.lang = 'es-PE';
+      rec.onresult = e => {
+        const cmd = e.results[0][0].transcript.toLowerCase();
+        if (cmd.includes('inicio') || cmd.includes('portada')) irAVentana(2);
+        else if (cmd.includes('buscar') || cmd.includes('búsqueda')) irAVentana(3);
+        else if (cmd.includes('expediente') || cmd.includes('visor')) irAVentana(5);
+        else if (cmd.includes('reniec')) abrirModalServicio('reniec');
+        else if (cmd.includes('sunat')) abrirModalServicio('sunat');
+      };
+      rec.start();
+    }
+
+    function restablecerAccesibilidad() {
+      document.body.className = '';
+      document.body.style = '';
+      document.documentElement.style.fontSize = '100%';
+      fontScale = 100;
+      document.getElementById('lblFontScale').textContent = '100%';
+      document.getElementById('reading-guide-bar').style.display = 'none';
+      document.querySelectorAll('.acc-chip').forEach(c => c.classList.remove('active'));
+      detenerVoz();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.altKey && e.key === '1') irAVentana(2);
+      if (e.altKey && e.key === '2') irAVentana(3);
+      if (e.altKey && e.key === '3') irAVentana(5);
+      if (e.altKey && e.key.toLowerCase() === 'a') toggleAccDrawer();
+    });
+  </script>
+</body>
+</html>
